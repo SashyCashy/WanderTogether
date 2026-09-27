@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WanderTogether — Trip Detail (Calm Atlas)</title>
+<style>
+/*
+  Trip Detail mockup — Calm Atlas identity. Demonstrates the screen where all four
+  PRD pillars meet: shared itinerary (FR-5), open-to-buddies + pending request (FR-7/8/9),
+  attached Accommodation (FR-13). Resize the window below 768px to see the responsive
+  behavior described in EXPERIENCE.md (nav collapses, row metadata stacks).
+
+  Tokens (from DESIGN.md, post-accessibility-review values):
+  --bg:#F7F6F2 --surface:#FFFFFF --ink:#23303B --ink-soft:#5C6B76
+  --accent:#7C9885 (sage, decorative only) --accent-text:#4E6B58 (sage-as-text, AA)
+  --border:#E3E0D8 --error:#B3402D
+
+  Visual composition reference only — see EXPERIENCE.md Accessibility Floor for
+  required semantics (toggle role="switch"/aria-checked, live-region announcements,
+  keyboard-focus parity with hover) not modeled in this static markup.
+*/
+:root{
+  --bg:#F7F6F2; --surface:#FFFFFF; --ink:#23303B; --ink-soft:#5C6B76;
+  --accent:#7C9885; --accent-text:#4E6B58; --border:#E3E0D8; --error:#B3402D;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+.frame{max-width:960px;margin:24px auto;background:var(--surface);border:1px solid var(--border)}
+.browserbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.rationale{max-width:960px;margin:0 auto 8px;padding:0 4px;font-size:14px;color:var(--ink-soft);line-height:1.5}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border)}
+.logo{font-size:18px;font-weight:600}
+.navlinks{display:flex;gap:28px;font-size:13px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+.navlinks .active{color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:6px}
+.tripheader{padding:32px 40px 20px;border-bottom:1px solid var(--border)}
+.eyebrow{color:var(--accent-text);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+.tripheader h1{font-size:28px;font-weight:400;margin:0 0 8px}
+.tripmeta{display:flex;gap:24px;font-size:13.5px;color:var(--ink-soft);flex-wrap:wrap}
+.code-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:6px 12px;font-size:13px}
+.code-chip b{color:var(--ink);letter-spacing:.05em}
+.section{padding:28px 40px;border-bottom:1px solid var(--border)}
+.section h2{font-size:16px;font-weight:600;margin:0 0 4px}
+.section .sub{font-size:13px;color:var(--ink-soft);margin:0 0 18px}
+.itin-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)}
+.itin-row:first-of-type{border-top:1px solid var(--border)}
+.itin-day{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;width:80px;flex-shrink:0}
+.itin-title{flex:1;font-size:15px}
+.itin-add{padding:14px 0;color:var(--ink-soft);font-size:14px;border-bottom:1px dashed var(--border)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.buddy-toggle{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.switch-hit{display:inline-flex;align-items:center;padding:3px 0;flex-shrink:0;cursor:pointer;border:none;background:none}
+.switch{width:38px;height:20px;border:1px solid var(--ink);position:relative;pointer-events:none}
+.switch::after{content:"";position:absolute;top:2px;left:20px;width:14px;height:14px;background:var(--ink)}
+.note{font-size:13.5px;color:var(--ink-soft);border-left:2px solid var(--accent);padding-left:12px;margin-bottom:16px}
+.request-row{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0;border-top:1px solid var(--border)}
+.request-row .who{font-size:14px;font-weight:600;margin:0 0 3px}
+.request-row .msg{font-size:13px;color:var(--ink-soft);max-width:280px}
+.actions{display:flex;gap:8px;flex-shrink:0}
+.btn{padding:8px 14px;font-size:13px;border:1px solid var(--ink);background:transparent;color:var(--ink)}
+.btn.primary{background:var(--ink);color:#fff}
+.accom-row{display:flex;gap:16px;align-items:center;padding:14px 0;border-top:1px solid var(--border)}
+.accom-row:last-child{border-bottom:1px solid var(--border)}
+.swatch{width:56px;height:56px;flex-shrink:0}
+.accom-name{font-size:14.5px;font-weight:600;margin:0 0 2px}
+.accom-meta{font-size:12.5px;color:var(--ink-soft)}
+.attached-tag{margin-left:auto;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-text);font-weight:700}
+
+/* Responsive: <768px collapses nav + stacks metadata, per EXPERIENCE.md Responsive & Platform */
+@media (max-width: 768px){
+  nav{padding:16px 20px;flex-wrap:wrap;gap:10px}
+  .navlinks{display:none}
+  .navlinks.mobile-visible{display:flex;width:100%;justify-content:space-between;gap:0;font-size:11px}
+  .tripheader,.section{padding:20px}
+  .two-col{grid-template-columns:1fr}
+  .accom-row{flex-wrap:wrap}
+  .attached-tag{margin-left:0;width:100%;order:3}
+  .request-row{flex-direction:column;gap:10px}
+  .actions{width:100%}
+  .btn{flex:1;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="rationale">Trip Detail — the screen where discovery, group planning, buddy requests, and accommodations meet. Resize below 768px to see the nav collapse and rows stack, per EXPERIENCE.md.</div>
+<div class="frame">
+  <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  <nav>
+    <div class="logo">WanderTogether</div>
+    <div class="navlinks mobile-visible">
+      <span>Discover</span>
+      <span class="active">My Trips</span>
+      <span>Buddies</span>
+      <span>Write-ups</span>
+    </div>
+  </nav>
+  <div class="tripheader">
+    <div class="eyebrow">Trip</div>
+    <h1>Lisbon Friends Trip</h1>
+    <div class="tripmeta">
+      <span>Mar 14–20, 2027 · Lisbon, Portugal</span>
+      <span class="code-chip">Trip Code: <b>lsb-friends-9k2</b></span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Itinerary</h2>
+    <p class="sub">Any trip member can add or edit a line.</p>
+    <div class="itin-row"><span class="itin-day">Day 1</span><span class="itin-title">Arrive, check into Riverside Hostel</span></div>
+    <div class="itin-row"><span class="itin-day">Day 2</span><span class="itin-title">Belém tour, pastel de nata stop (Marcus)</span></div>
+    <div class="itin-row"><span class="itin-day">Day 3</span><span class="itin-title">Free day / miradouro sunset</span></div>
+    <div class="itin-add">+ Add a line</div>
+  </div>
+
+  <div class="section two-col">
+    <div>
+      <h2>Travel Buddies</h2>
+      <div class="buddy-toggle">
+        <span class="sub" id="buddy-toggle-label" style="margin:0">Open to buddies</span>
+        <button class="switch-hit" role="switch" aria-checked="true" aria-labelledby="buddy-toggle-label"><span class="switch"></span></button>
+      </div>
+      <div class="note">"2 spots, need someone chill about hostels."</div>
+      <div class="request-row">
+        <div>
+          <p class="who">Sofia</p>
+          <p class="msg">"Hey! I'm flexible on dates and would love to join for a few days."</p>
+        </div>
+        <div class="actions">
+          <button class="btn">Decline</button>
+          <button class="btn primary">Accept</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2>Accommodation</h2>
+      <p class="sub">Browse listings for Lisbon, attach one to this trip.</p>
+      <div class="accom-row">
+        <div class="swatch" style="background:linear-gradient(135deg,#C9B896,#7C9885)"></div>
+        <div>
+          <p class="accom-name">Riverside Hostel</p>
+          <p class="accom-meta">$28/night · ★ 4.3</p>
+        </div>
+        <span class="attached-tag">Attached</span>
+      </div>
+      <div class="accom-row">
+        <div class="swatch" style="background:linear-gradient(135deg,#7C9885,#23303B)"></div>
+        <div>
+          <p class="accom-name">Alfama Boutique Inn</p>
+          <p class="accom-meta">$95/night · ★ 4.7</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

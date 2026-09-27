@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WanderTogether — Discover (Calm Atlas)</title>
+<style>
+/*
+  WanderTogether — Discover surface, Calm Atlas identity.
+  Visual composition reference only — see EXPERIENCE.md Accessibility Floor for
+  required interactive semantics (nav, inputs) not modeled in this markup.
+  Rationale: Minimal, trustworthy, map-inspired. Muted sage + navy + cream, generous
+  whitespace, thin hairline dividers instead of cards-with-shadows. Reads more "grown-up
+  trip planner" than "social app" — calm confidence rather than energy.
+
+  Tokens (post-accessibility-review values — see DESIGN.md Colors):
+  --bg:        #F7F6F2   (warm cream)
+  --surface:   #FFFFFF
+  --ink:       #23303B   (deep navy-ink)
+  --ink-soft:  #5C6B76   (darkened from #6C7A85 to clear WCAG AA)
+  --primary:   #23303B   (navy, used for primary actions — not a bright accent)
+  --primary-ink: #FFFFFF
+  --accent:    #7C9885   (muted sage — decorative use only, never text)
+  --accent-text: #4E6B58 (darkened sage for eyebrow/tag text, clears WCAG AA)
+  --border:    #E3E0D8
+*/
+:root{
+  --bg:#F7F6F2; --surface:#FFFFFF; --ink:#23303B; --ink-soft:#5C6B76;
+  --primary:#23303B; --primary-ink:#FFFFFF; --accent:#7C9885; --accent-text:#4E6B58; --border:#E3E0D8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+.frame{max-width:1040px;margin:24px auto;background:var(--surface);overflow:hidden;border:1px solid var(--border)}
+.browserbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.rationale{max-width:1040px;margin:0 auto 8px;padding:0 4px;font-size:14px;color:var(--ink-soft);line-height:1.5}
+nav{display:flex;align-items:center;justify-content:space-between;padding:24px 40px;border-bottom:1px solid var(--border)}
+.logo{font-size:19px;font-weight:600;letter-spacing:.02em}
+.navlinks{display:flex;gap:32px;font-size:13.5px;color:var(--ink-soft);letter-spacing:.02em;text-transform:uppercase}
+.navlinks .active{color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:6px}
+.cta{background:var(--primary);color:var(--primary-ink);border:none;padding:11px 20px;font-size:13.5px;letter-spacing:.02em}
+.hero{padding:48px 40px 24px;max-width:600px}
+.hero .eyebrow{color:var(--accent-text);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:12px}
+.hero h1{font-size:32px;font-weight:400;line-height:1.3;margin:0 0 14px;letter-spacing:-.01em}
+.hero p{color:var(--ink-soft);font-size:15px;margin:0 0 24px;line-height:1.6}
+.search-label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+.search{display:flex;border:1px solid var(--ink);max-width:460px}
+.search input{flex:1;padding:14px 16px;border:none;font-size:14px;background:transparent}
+.search button{padding:14px 22px;border:none;background:var(--ink);color:#fff;font-size:13.5px;letter-spacing:.02em}
+.list{padding:0 40px 40px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--border)}
+.row:first-child{border-top:1px solid var(--border)}
+.row .left{display:flex;align-items:center;gap:18px}
+.swatch{width:64px;height:64px;flex-shrink:0}
+.place{font-size:17px;font-weight:500;margin:0 0 4px}
+.desc{font-size:13px;color:var(--ink-soft);max-width:360px}
+.right{text-align:right;font-size:13px;color:var(--ink-soft)}
+.right .price{color:var(--ink);font-weight:600;font-size:14px}
+</style>
+</head>
+<body>
+<div class="rationale">Calm Atlas — minimal, map-inspired, trustworthy. Muted sage + navy + cream, hairline dividers instead of cards, reads as a calm, grown-up trip planner rather than a social feed.</div>
+<div class="frame">
+  <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  <nav>
+    <div class="logo">WanderTogether</div>
+    <div class="navlinks">
+      <span class="active">Discover</span>
+      <span>My Trips</span>
+      <span>Buddies</span>
+      <span>Write-ups</span>
+    </div>
+    <button class="cta">Start a Trip</button>
+  </nav>
+  <div class="hero">
+    <div class="eyebrow">Plan together</div>
+    <h1>Find a place. Bring your people. Sort the rest here.</h1>
+    <p>No account needed — start a trip and share the link with whoever's coming.</p>
+    <label class="search-label" for="destination-search">Search destinations</label>
+    <div class="search">
+      <input id="destination-search" placeholder="e.g. coastal, under 5 days"/>
+      <button>Search</button>
+    </div>
+  </div>
+  <div class="list">
+    <div class="row">
+      <div class="left">
+        <div class="swatch" style="background:linear-gradient(135deg,#C9B896,#7C9885)"></div>
+        <div>
+          <p class="place">Lisbon, Portugal</p>
+          <p class="desc">Hillside city, tram lines, river light in the evenings.</p>
+        </div>
+      </div>
+      <div class="right"><div class="price">from $22/night</div>4.6 · 128 write-ups</div>
+    </div>
+    <div class="row">
+      <div class="left">
+        <div class="swatch" style="background:linear-gradient(135deg,#7C9885,#23303B)"></div>
+        <div>
+          <p class="place">Ubud, Bali</p>
+          <p class="desc">Rice terraces, quiet mornings, easy for a first group trip.</p>
+        </div>
+      </div>
+      <div class="right"><div class="price">from $14/night</div>4.8 · 96 write-ups</div>
+    </div>
+    <div class="row">
+      <div class="left">
+        <div class="swatch" style="background:linear-gradient(135deg,#23303B,#6C7A85)"></div>
+        <div>
+          <p class="place">Reykjavík, Iceland</p>
+          <p class="desc">Short days, long light in summer, easy to plan around.</p>
+        </div>
+      </div>
+      <div class="right"><div class="price">from $95/night</div>4.7 · 54 write-ups</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
