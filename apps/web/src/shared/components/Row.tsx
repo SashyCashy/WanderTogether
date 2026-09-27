@@ -38,6 +38,10 @@ export interface RowProps {
  * 44px minimum touch-target height from the Accessibility Floor.
  */
 export function Row({ headline, description, thumbnail, metadata, eyebrow, href, onClick }: RowProps) {
+  if (import.meta.env.DEV && href && onClick) {
+    console.warn('Row: `onClick` is ignored when `href` is set — the row renders as a link, not a button.');
+  }
+
   const content = (
     <>
       {thumbnail ? (

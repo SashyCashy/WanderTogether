@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { after, test } from 'node:test';
+import { after, before, test } from 'node:test';
 import { prisma } from '../src/shared/prisma.js';
 import { SEED_COUNTS, seedDatabase } from './seed.js';
 
@@ -8,10 +8,21 @@ import { SEED_COUNTS, seedDatabase } from './seed.js';
  *   - Seed script run on a fresh SQLite file -> Destination + AccommodationListing rows populate
  *   - Seed script run a second time -> no duplicate rows (idempotent)
  *
- * Runs against whatever DATABASE_URL is configured (the dev SQLite file) —
- * this suite is destructive-safe because every write is an upsert on a
- * stable slug, never a delete, so re-running it never loses data.
+ * Runs against whatever DATABASE_URL is configured — this suite is
+ * destructive-safe (every write is an upsert on a stable slug, never a
+ * delete), but it's still real writes, so it refuses to run against
+ * anything that doesn't look like a local SQLite file, in case
+ * DATABASE_URL is ever pointed at a shared/staging database.
  */
+
+before(() => {
+  const url = process.env.DATABASE_URL ?? '';
+  if (!url.startsWith('file:')) {
+    throw new Error(
+      `Refusing to run seed.test.ts against DATABASE_URL="${url}" — this suite only runs against a local SQLite file ("file:...").`,
+    );
+  }
+});
 
 after(async () => {
   await prisma.$disconnect();

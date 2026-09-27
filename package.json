@@ -8,7 +8,7 @@
     "apps/api"
   ],
   "engines": {
-    "node": "^20.19 || ^22.12 || >=24.0"
+    "node": "^24.0"
   },
   "scripts": {
     "dev:web": "npm run dev --workspace apps/web",

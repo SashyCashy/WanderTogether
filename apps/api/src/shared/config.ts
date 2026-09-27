@@ -8,7 +8,7 @@ import 'dotenv/config';
 function parsePort(): number {
   const raw = process.env.PORT ?? '3001';
   const parsed = Number(raw);
-  if (Number.isNaN(parsed)) {
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 65535) {
     throw new Error(`Invalid PORT: ${raw}`);
   }
   return parsed;

@@ -86,7 +86,25 @@ export function Navigation({ items, activeHref }: NavigationProps) {
         ref={menuRef}
         className={isMenuOpen ? 'nav__menu nav__menu--open' : 'nav__menu'}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') closeMenu();
+          if (event.key === 'Escape') {
+            closeMenu();
+            return;
+          }
+          // Trap Tab focus inside the open overlay — without this, Tab past
+          // the last link exits into whatever's behind the (visually)
+          // still-open menu.
+          if (event.key === 'Tab' && menuRef.current) {
+            const links = menuRef.current.querySelectorAll('a');
+            const first = links[0];
+            const last = links[links.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault();
+              last?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first?.focus();
+            }
+          }
         }}
       >
         {items.map((item) => (
