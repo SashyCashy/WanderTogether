@@ -1,0 +1,104 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-unit) var(--space-margin-mobile);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* EXPERIENCE.md > Accessibility Floor: mobile nav trigger is a real
+   button with a visible/aria-label'd name and aria-expanded. Hidden at
+   tablet/desktop widths, where all tabs show inline instead. */
+.nav__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  letter-spacing: var(--font-label-letter-spacing);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Mobile-first: the tab list is a collapsible menu, closed by default. */
+.nav__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nav__menu.nav__menu--open {
+  display: flex;
+}
+
+.nav__item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nav__link {
+  display: block;
+  min-height: var(--touch-target-min);
+  padding: var(--space-unit) var(--space-margin-mobile);
+  color: var(--color-ink);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  letter-spacing: var(--font-label-letter-spacing);
+  line-height: var(--touch-target-min);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav__link--active {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* EXPERIENCE.md > Responsive & Platform: >=768px shows all tab labels
+   inline (tablet tightens spacing only; desktop is the same layout). */
+@media (min-width: 768px) {
+  .nav {
+    padding: var(--space-unit) var(--space-margin-desktop);
+  }
+
+  .nav__trigger {
+    display: none;
+  }
+
+  .nav__menu {
+    position: static;
+    display: flex !important;
+    flex-direction: row;
+    width: auto;
+    border-bottom: none;
+  }
+
+  .nav__item {
+    border-bottom: none;
+  }
+
+  .nav__link {
+    padding: var(--space-unit) var(--space-unit);
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav__link {
+    padding: var(--space-unit) var(--space-gutter);
+  }
+}

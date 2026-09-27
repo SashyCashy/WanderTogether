@@ -1,0 +1,67 @@
+/* DESIGN.md > Components > empty-state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-unit);
+  padding: var(--space-section-gap) 0;
+  text-align: left;
+}
+
+.empty-state__headline {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-headline-size);
+  font-weight: var(--font-headline-weight);
+  line-height: var(--font-headline-line-height);
+}
+
+.empty-state__body {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--font-body-size);
+  line-height: var(--font-body-line-height);
+}
+
+.empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-unit);
+  margin-top: var(--space-unit);
+}
+
+/* DESIGN.md > Components > button-primary / button-secondary. Sharp
+   corners (radius 0), no shadow, no pill shapes anywhere. */
+.empty-state__action {
+  min-height: var(--touch-target-min);
+  padding: 14px 22px;
+  border-radius: 0;
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  line-height: var(--font-label-line-height);
+  letter-spacing: var(--font-label-letter-spacing);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.empty-state__action--primary {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.empty-state__action--secondary {
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-ink);
+}
+
+/* EXPERIENCE.md > Responsive & Platform: buttons go full-width on phone. */
+@media (max-width: 767px) {
+  .empty-state__actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}

@@ -1,0 +1,62 @@
+/**
+ * Accessibility & responsive primitives — EXPERIENCE.md > Accessibility
+ * Floor and Responsive & Platform are the source of truth. Establishing
+ * these once here means later feature slices reuse them instead of
+ * reinventing focus rings, touch targets, or breakpoints per surface.
+ */
+
+:root {
+  /* EXPERIENCE.md > Accessibility Floor: 44px row click targets,
+     24x24 minimum hit area for small controls (e.g. the buddies toggle). */
+  --touch-target-min: 44px;
+  --hit-area-min: 24px;
+
+  /* EXPERIENCE.md > Responsive & Platform breakpoints. Keep these two
+     numbers as the only breakpoints in the product — mirrored in
+     shared/breakpoints.ts for any JS (matchMedia / ResizeObserver) that
+     needs the same cutoffs. */
+  --breakpoint-tablet-min: 768px;
+  --breakpoint-desktop-min: 1024px;
+}
+
+/**
+ * EXPERIENCE.md > Accessibility Floor: "Focus state is a solid 2px
+ * colors.ink outline — the single focus spec for every element". This is
+ * the only focus-outline rule in the product; nothing else should define
+ * a competing one.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/**
+ * Screen-reader-only content: used for the polite live region
+ * (see LiveRegion.tsx) and for text that must exist for assistive tech
+ * without appearing visually.
+ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/**
+ * Utility for any control whose visible size is smaller than the
+ * accessible minimum hit area (e.g. the open-to-buddies toggle's slim
+ * track). Apply to the interactive element itself; it pads the hit area
+ * without changing visual size.
+ */
+.hit-area-min {
+  min-width: var(--hit-area-min);
+  min-height: var(--hit-area-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

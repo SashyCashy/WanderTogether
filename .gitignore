@@ -1,0 +1,10 @@
+node_modules/
+dist/
+generated/
+*.db
+*.db-journal
+*.tsbuildinfo
+.env
+!.env.example
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
