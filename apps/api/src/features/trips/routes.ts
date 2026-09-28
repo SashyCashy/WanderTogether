@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { createTrip, getTripByCode, addMember } from './service.js';
+import { createTrip, getTripByCode, addMember, updateItinerary } from './service.js';
 import { AppError } from '../../shared/error-middleware.js';
 
 // z.iso.date() (not z.coerce.date()) — the spec's Always constraint requires
@@ -18,6 +18,16 @@ const createTripSchema = z.object({
 const addMemberSchema = z.object({
   displayName: z.string().trim().min(1, 'Display name is required.').max(100),
 });
+
+const updateItinerarySchema = z
+  .array(
+    z.object({
+      day: z.string().trim().min(1, 'day is required.').max(60),
+      title: z.string().trim().min(1, 'title is required.').max(200),
+      note: z.string().trim().max(500).nullable().optional(),
+    }),
+  )
+  .max(200, 'An itinerary can have at most 200 lines.');
 
 export const tripsRouter = Router();
 
@@ -48,6 +58,16 @@ tripsRouter.post('/:code/members', async (req, res, next) => {
     const { displayName } = addMemberSchema.parse(req.body);
     const member = await addMember(req.params.code, displayName);
     res.status(201).json(member);
+  } catch (error) {
+    next(error);
+  }
+});
+
+tripsRouter.put('/:code/itinerary', async (req, res, next) => {
+  try {
+    const items = updateItinerarySchema.parse(req.body);
+    const itineraryItems = await updateItinerary(req.params.code, items);
+    res.json(itineraryItems);
   } catch (error) {
     next(error);
   }

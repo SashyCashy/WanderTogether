@@ -7,13 +7,15 @@ import { after, test } from 'node:test';
 import Database from 'better-sqlite3';
 
 /**
- * Covers spec-1-3's and spec-1-4's I/O & Edge-Case Matrices for the trips
- * slice:
+ * Covers spec-1-3's, spec-1-4's, and spec-1-5's I/O & Edge-Case Matrices
+ * for the trips slice:
  *   - POST /api/trips: create from a Destination, unknown destinationId,
  *     endDate before startDate
  *   - GET /api/trips/:code: happy path, unknown code
  *   - POST /api/trips/:code/members: happy path, unknown code, missing
  *     displayName
+ *   - PUT /api/trips/:code/itinerary: save-from-empty, overwrite preserves
+ *     order, unknown code, empty-title rejection
  *
  * Same isolation pattern as discovery's routes.test.ts: its own throwaway
  * SQLite file, migrated by replaying every folder under prisma/migrations
@@ -270,4 +272,156 @@ test('POST /api/trips/:code/members returns 400 VALIDATION_ERROR when displayNam
   assert.equal(response.status, 400);
   const body = await response.json();
   assert.equal((body as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
+});
+
+test('PUT /api/trips/:code/itinerary saves an itinerary from empty', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Itinerary Trip',
+      destinationId: destination.id,
+      startDate: '2027-08-01',
+      endDate: '2027-08-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([{ day: 'Day 1', title: 'Arrive, check in' }]),
+  });
+
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { id: string; day: string; title: string; note: string | null }[];
+  assert.equal(body.length, 1);
+  assert.equal(body[0].day, 'Day 1');
+  assert.equal(body[0].title, 'Arrive, check in');
+  assert.equal(body[0].note, null);
+  assert.ok(body[0].id);
+});
+
+test('PUT /api/trips/:code/itinerary overwrites the previous itinerary and preserves submission order', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Reorder Trip',
+      destinationId: destination.id,
+      startDate: '2027-08-01',
+      endDate: '2027-08-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  await fetch(`${baseUrl}/api/trips/${created.id}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([{ day: 'Day 1', title: 'First' }]),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([
+      { day: 'Day 1', title: 'Arrive' },
+      { day: 'Day 2', title: 'Explore' },
+      { day: 'Day 3', title: 'Depart', note: 'Early flight' },
+    ]),
+  });
+
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { day: string; title: string; note: string | null }[];
+  assert.equal(body.length, 3);
+  assert.deepEqual(
+    body.map((item) => item.title),
+    ['Arrive', 'Explore', 'Depart'],
+  );
+  assert.equal(body[2].note, 'Early flight');
+
+  const getResponse = await fetch(`${baseUrl}/api/trips/${created.id}`);
+  const trip = (await getResponse.json()) as { itineraryItems: { title: string }[] };
+  assert.deepEqual(
+    trip.itineraryItems.map((item) => item.title),
+    ['Arrive', 'Explore', 'Depart'],
+  );
+});
+
+test('PUT /api/trips/:code/itinerary can overwrite down to an empty array (removing the last line)', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Clearable Trip',
+      destinationId: destination.id,
+      startDate: '2027-08-01',
+      endDate: '2027-08-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  await fetch(`${baseUrl}/api/trips/${created.id}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([{ day: 'Day 1', title: 'Only line' }]),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([]),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), []);
+
+  const getResponse = await fetch(`${baseUrl}/api/trips/${created.id}`);
+  const trip = (await getResponse.json()) as { itineraryItems: unknown[] };
+  assert.equal(trip.itineraryItems.length, 0);
+});
+
+test('PUT /api/trips/:code/itinerary returns 404 NOT_FOUND for an unknown code', async () => {
+  const response = await fetch(`${baseUrl}/api/trips/not-a-real-code/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([{ day: 'Day 1', title: 'Arrive' }]),
+  });
+
+  assert.equal(response.status, 404);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'NOT_FOUND');
+});
+
+test('PUT /api/trips/:code/itinerary returns 400 VALIDATION_ERROR when a line has an empty title', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Bad Line Trip',
+      destinationId: destination.id,
+      startDate: '2027-08-01',
+      endDate: '2027-08-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify([
+      { day: 'Day 1', title: 'Arrive' },
+      { day: 'Day 2', title: '' },
+    ]),
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
+
+  // The whole overwrite must be rejected, not just the bad line — the
+  // previously-saved itinerary should be untouched.
+  const getResponse = await fetch(`${baseUrl}/api/trips/${created.id}`);
+  const trip = (await getResponse.json()) as { itineraryItems: unknown[] };
+  assert.equal(trip.itineraryItems.length, 0);
 });

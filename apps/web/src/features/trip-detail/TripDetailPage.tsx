@@ -5,6 +5,7 @@ import { useTrip } from './useTrip';
 import { useJoinTrip } from './useJoinTrip';
 import { ApiError } from './api';
 import { addTripToIndex, hasTripInIndex } from '../../shared/myTripsIndex';
+import { ItinerarySection } from './ItinerarySection';
 import './TripDetailPage.css';
 
 function formatDateRange(startDate: string | null, endDate: string | null): string | null {
@@ -95,10 +96,10 @@ function TravelerProfilePrompt({
 }
 
 /**
- * Header-only Trip Detail (spec-1-3's Never list) — itinerary/buddies/
- * accommodation sections land in later stories. This is also the screen a
- * pasted Trip Code/Link opens fresh, so `useTrip` (not passed-in state) is
- * the only data source.
+ * Trip Detail: header (Stories 1.3/1.4) + itinerary (Story 1.5) —
+ * buddies/accommodation sections land in later epics. This is also the
+ * screen a pasted Trip Code/Link opens fresh, so `useTrip` (not
+ * passed-in state) is the only data source.
  */
 export function TripDetailPage({ code }: { code: string }) {
   const { data: trip, isLoading, isError, error } = useTrip(code);
@@ -194,6 +195,8 @@ export function TripDetailPage({ code }: { code: string }) {
           {copyLabel}
         </button>
       </div>
+
+      <ItinerarySection tripCode={trip.id} items={trip.itineraryItems} />
     </main>
   );
 }

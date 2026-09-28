@@ -1,0 +1,118 @@
+.itinerary-section {
+  padding: var(--space-section-gap-mobile) 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .itinerary-section {
+    padding-top: var(--space-section-gap);
+  }
+}
+
+.itinerary-section__heading {
+  margin: 0 0 4px;
+  font-size: var(--font-headline-size);
+  font-weight: var(--font-headline-weight);
+  line-height: var(--font-headline-line-height);
+}
+
+.itinerary-section__sub {
+  margin: 0 0 var(--space-gutter);
+  color: var(--color-ink-soft);
+  font-size: var(--font-caption-size);
+}
+
+.itinerary-section__error {
+  margin: 0 0 var(--space-unit);
+  color: var(--color-error);
+  font-size: var(--font-body-size);
+}
+
+.itinerary-section__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.itinerary-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-unit);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.itinerary-row__day {
+  flex-shrink: 0;
+  width: 72px;
+  color: var(--color-ink-soft);
+  font-size: var(--font-caption-size);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.itinerary-row__title {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-body-size);
+  text-align: left;
+  cursor: pointer;
+}
+
+.itinerary-row__title-input {
+  flex: 1;
+  min-height: var(--touch-target-min);
+  padding: 0 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-body-size);
+}
+
+/* EXPERIENCE.md > Interaction Primitives: hover-revealed on pointer
+   devices, identically visible on keyboard focus — never hover-only.
+   Below the tablet breakpoint (touch), it's persistently visible instead
+   of hover-gated, per the same doc's touch-device note. */
+.itinerary-row__remove {
+  flex-shrink: 0;
+  min-height: var(--touch-target-min);
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-size: var(--font-caption-size);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.itinerary-row:hover .itinerary-row__remove,
+.itinerary-row__remove:focus-visible {
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .itinerary-row__remove {
+    opacity: 1;
+  }
+}
+
+.itinerary-section__add {
+  margin-top: 4px;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 1px dashed var(--color-border);
+  background: none;
+  color: var(--color-ink-soft);
+  font-size: var(--font-body-size);
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}

@@ -1,3 +1,10 @@
+export interface ItineraryItem {
+  id: string;
+  day: string;
+  title: string;
+  note: string | null;
+}
+
 export interface TripDetail {
   id: string;
   name: string;
@@ -9,6 +16,7 @@ export interface TripDetail {
     name: string;
     country: string;
   };
+  itineraryItems: ItineraryItem[];
 }
 
 export interface CreateTripInput {
@@ -66,4 +74,21 @@ export async function joinTrip(code: string, displayName: string): Promise<TripM
   });
   if (!response.ok) return throwForResponse(response);
   return response.json() as Promise<TripMember>;
+}
+
+export interface ItineraryItemInput {
+  day: string;
+  title: string;
+  note?: string | null;
+}
+
+/** AD-8: full-resource overwrite — sends the *entire* itinerary, not a single line's diff. */
+export async function updateItinerary(code: string, items: ItineraryItemInput[]): Promise<ItineraryItem[]> {
+  const response = await fetch(`/api/trips/${encodeURIComponent(code)}/itinerary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items),
+  });
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<ItineraryItem[]>;
 }
