@@ -3,6 +3,7 @@ import { requestLogger } from './shared/logger.js';
 import { errorMiddleware, notFoundMiddleware } from './shared/error-middleware.js';
 import { discoveryRouter } from './features/discovery/routes.js';
 import { tripsRouter } from './features/trips/routes.js';
+import { buddiesRouter } from './features/buddies/routes.js';
 
 /**
  * Builds the Express app without binding a port, so tests (routes.test.ts)
@@ -26,6 +27,7 @@ export function createApp() {
   // convention — see vite.config.ts's dev proxy target).
   app.use('/api/destinations', discoveryRouter);
   app.use('/api/trips', tripsRouter);
+  app.use('/api/buddies', buddiesRouter);
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);

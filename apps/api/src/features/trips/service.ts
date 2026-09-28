@@ -73,6 +73,9 @@ export async function createTrip(input: CreateTripInput): Promise<TripDetail> {
       destinationId: input.destinationId,
       startDate: input.startDate,
       endDate: input.endDate,
+      // AD-7: a second, unrelated id for the Buddies browse/request flow
+      // (Epic 2) — never derived from or exposed alongside the real code.
+      buddyListingId: nanoid(),
     },
     select: TRIP_SELECT,
   });
@@ -191,4 +194,72 @@ export async function updateTripSettings(tripCode: string, patch: TripSettingsPa
     data: patch,
     select: TRIP_SELECT,
   });
+}
+
+export interface OpenTripForBuddies {
+  buddyListingId: string;
+  name: string;
+  startDate: Date | null;
+  endDate: Date | null;
+  buddyNote: string | null;
+  destination: {
+    name: string;
+    country: string;
+  };
+}
+
+/**
+ * AD-7: never selects `id` — the Trip Code — anywhere in this shape.
+ * `buddyListingId` is the only identifier the Buddies browse/request flow
+ * is allowed to see; exposing it grants no Trip access, unlike `id`.
+ */
+const OPEN_TRIP_SELECT = {
+  buddyListingId: true,
+  name: true,
+  startDate: true,
+  endDate: true,
+  buddyNote: true,
+  destination: { select: { name: true, country: true } },
+} as const;
+
+export async function listOpenTripsForBuddies(): Promise<OpenTripForBuddies[]> {
+  return prisma.trip.findMany({
+    where: { openToBuddies: true },
+    select: OPEN_TRIP_SELECT,
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
+/**
+ * The one place `buddyListingId → still-open Trip` is resolved — both
+ * public-shape reads and the internal id-resolution below build on this,
+ * so the `openToBuddies: true` invariant only has to be correct once.
+ */
+async function findOpenTripByBuddyListingId(buddyListingId: string): Promise<{ id: string } & OpenTripForBuddies> {
+  const trip = await prisma.trip.findFirst({
+    where: { buddyListingId, openToBuddies: true },
+    select: { id: true, ...OPEN_TRIP_SELECT },
+  });
+  if (!trip) {
+    throw new AppError('NOT_FOUND', 'No open Trip matches this listing.');
+  }
+  return trip;
+}
+
+/** Throws NOT_FOUND for an unknown `buddyListingId` or one whose Trip is no longer open. */
+export async function getOpenTripForBuddies(buddyListingId: string): Promise<OpenTripForBuddies> {
+  const { id: _id, ...publicShape } = await findOpenTripByBuddyListingId(buddyListingId);
+  return publicShape;
+}
+
+/**
+ * Internal-only: resolves a public `buddyListingId` to the real Trip Code
+ * so `buddies.submitBuddyRequest` can create a `TravelBuddyRequest`
+ * against the right Trip. The result is never returned over HTTP from any
+ * Buddies browse/listing endpoint — only used server-side to write a row
+ * in a table `buddies` owns.
+ */
+export async function resolveTripIdForBuddyListing(buddyListingId: string): Promise<string> {
+  const trip = await findOpenTripByBuddyListingId(buddyListingId);
+  return trip.id;
 }

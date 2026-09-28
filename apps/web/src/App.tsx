@@ -6,14 +6,16 @@ import { CreateTripPage } from './features/trip-detail/CreateTripPage';
 import { TripDetailPage } from './features/trip-detail/TripDetailPage';
 import { JoinTripPage } from './features/trip-detail/JoinTripPage';
 import { MyTripsPage } from './features/my-trips/MyTripsPage';
+import { BuddiesPage } from './features/buddies/BuddiesPage';
+import { BuddyRequestPage } from './features/buddies/BuddyRequestPage';
 import { useRoute, installLinkInterceptor } from './shared/router';
 
-// Buddies/Write-ups stay non-functional placeholders until a real screen
-// exists for each (Epic 2+/3+). Discover and My Trips are both real now.
+// Write-ups stays a non-functional placeholder until a real screen exists
+// for it (Epic 3+). Discover, My Trips, and Buddies are all real now.
 const NAV_ITEMS = [
   { label: 'Discover', href: '/' },
   { label: 'My Trips', href: '/my-trips' },
-  { label: 'Buddies', href: '#buddies' },
+  { label: 'Buddies', href: '/buddies' },
   { label: 'Write-ups', href: '#write-ups' },
 ];
 
@@ -25,6 +27,18 @@ function CurrentPage({ pathname, search }: { pathname: string; search: string })
   if (pathname === '/trips/new') return <CreateTripPage key={search} />;
   if (pathname === '/join') return <JoinTripPage />;
   if (pathname === '/my-trips') return <MyTripsPage />;
+  if (pathname === '/buddies') return <BuddiesPage />;
+
+  const buddyListingMatch = pathname.match(/^\/buddies\/([^/]+)$/);
+  if (buddyListingMatch) {
+    let buddyListingId: string;
+    try {
+      buddyListingId = decodeURIComponent(buddyListingMatch[1]);
+    } catch {
+      buddyListingId = buddyListingMatch[1];
+    }
+    return <BuddyRequestPage key={buddyListingId} buddyListingId={buddyListingId} />;
+  }
 
   const tripMatch = pathname.match(/^\/trip\/([^/]+)$/);
   if (tripMatch) {

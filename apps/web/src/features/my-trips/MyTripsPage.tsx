@@ -6,13 +6,8 @@ import { EmptyState } from '../../shared/components/EmptyState';
 import { useAnnounce } from '../../shared/LiveRegion';
 import { getMyTripsIndex } from '../../shared/myTripsIndex';
 import { fetchTrip } from '../trip-detail/api';
+import { formatDateRange } from '../../shared/formatDateRange';
 import './MyTripsPage.css';
-
-function formatDateRange(startDate: string | null, endDate: string | null): string | null {
-  if (!startDate || !endDate) return null;
-  const format = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  return `${format(startDate)} – ${format(endDate)}`;
-}
 
 /**
  * Reads the local "My Trips" index (AD-13) and resolves each stored Trip

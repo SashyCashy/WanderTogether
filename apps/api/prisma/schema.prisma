@@ -59,6 +59,12 @@ model Trip {
   openToBuddies            Boolean  @default(false)
   /// Shown alongside the Trip on the Buddies surface once open.
   buddyNote                String?
+  /// AD-7: a second, separately-generated public identifier — never the
+  /// Trip Code/`id` — used only by the Buddies browse/request flow
+  /// (Epic 2). Exposing this grants no view/edit access to the Trip;
+  /// only `id` (the real code) does. Generated once per Trip at creation,
+  /// same `nanoid()`-in-application-code convention as `id`.
+  buddyListingId           String   @unique
   /// 0..1 attached Accommodation (AD-8: PATCH-partial-merge field, not
   /// itinerary's full-overwrite semantics).
   attachedAccommodationId  String?
