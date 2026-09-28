@@ -60,6 +60,12 @@ export function ItinerarySection({ tripCode, items }: { tripCode: string; items:
   // resolves — a failed save leaves the row exactly as the user left it.
   const commitEdit = () => {
     if (!editingId) return;
+    // The input stays rendered (and can be blurred again) while its own
+    // prior save is still in flight — without this guard, a second
+    // blur/Enter before the first response resolves fires a second PUT
+    // from the same stale `items` closure, and whichever response lands
+    // last silently overwrites the other in the cache.
+    if (mutation.isPending) return;
     if (cancelledRef.current) {
       cancelledRef.current = false;
       setEditingId(null);
@@ -89,6 +95,7 @@ export function ItinerarySection({ tripCode, items }: { tripCode: string; items:
   };
 
   const commitNewLine = () => {
+    if (mutation.isPending) return;
     if (cancelledRef.current) {
       cancelledRef.current = false;
       setIsAddingLine(false);

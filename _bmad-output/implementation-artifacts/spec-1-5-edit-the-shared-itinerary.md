@@ -95,6 +95,10 @@ context:
 - **low, patch** — `updateItinerary`'s `results.slice(1)` relied entirely on the `$transaction` array's positional order with no runtime check (Blind Hunter). Fixed: added a length assertion so a future edit to the transaction's shape fails loudly instead of silently returning the wrong rows.
 - **false** — Blind Hunter: `note` is modeled end-to-end but has no UI control in `ItinerarySection`. This is the spec's own disclosed, deliberate scope boundary (see this spec's Never list and Implementation Notes) — not a missed requirement.
 
+### Independent code-review pass (2026-09-28, `/code-review`)
+
+- **medium, patch** — The earlier same-tab-race fix disabled *starting* new actions (`startEditing`, `removeItem`, "+ Add a line") while a save was pending, but missed the commit handlers themselves: an already-open edit input stays rendered and un-disabled while its own save is in flight, so a second blur/Enter on that same field fires a second `PUT` from the same stale `items` closure — whichever response resolves last silently overwrites the other in the cache, a same-tab lost update distinct from AD-8's documented cross-browser last-write-wins case. Verified: neither `commitEdit` nor `commitNewLine` checked `mutation.isPending`. Fixed: both now early-return while a save is already in flight, so only one `PUT` is ever outstanding at a time; a second edit attempted mid-save is left in the (still-visible, unsaved) field rather than racing, and the user can retry once the pending save resolves.
+
 ## Verification
 
 **Commands:**
