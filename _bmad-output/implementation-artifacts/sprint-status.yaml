@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-27-2026 13:42
-last_updated: 09-29-2026 00:35
+last_updated: 09-29-2026 00:12
 project: WanderTogether
 project_key: NOKEY
 tracking_system: file-system
@@ -65,14 +65,14 @@ action_items:
     action: "Extract a shared apps/web/src/shared/api.ts exporting ApiError and throwForResponse,
       and migrate all 5 feature slices api.ts files onto it."
     owner: "next dev session"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-09-28.md"
   - id: "epic-1-retro-item-2-stand-up-a-frontend-test-runner-for-apps"
     epic: 1
     action: "Stand up a frontend test runner for apps/web (e.g. Vitest + Testing Library)
       — raised and correctly deferred 5 separate times across Epic 1 alone."
     owner: "next dev session"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-09-28.md"
   - id: "epic-2-retro-item-3-split-apps-api-src-features-trips-routes"
     epic: 2
@@ -80,7 +80,7 @@ action_items:
       / settings-PATCH / buddy-requests / accommodation-attach) once it next grows
       materially."
     owner: "next dev session touching this file"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-09-28.md"
   - id: "epic-4-retro-item-4-extract-a-shared-apps-web-src-shared-api"
     epic: 4
@@ -88,5 +88,5 @@ action_items:
       slices onto it — now 5/5 slices duplicated with no further epic to add a 6th
       copy."
     owner: "next dev session"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-09-29.md"
