@@ -15,6 +15,12 @@ export default defineConfig({
         target: `http://localhost:${apiPort}`,
         changeOrigin: true,
       },
+      // Story 3.1's uploaded write-up photos (AD-11) are served by the API
+      // at /uploads/*, not under /api — needs its own proxy entry.
+      '/uploads': {
+        target: `http://localhost:${apiPort}`,
+        changeOrigin: true,
+      },
     },
   },
 });

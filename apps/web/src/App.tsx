@@ -8,15 +8,14 @@ import { JoinTripPage } from './features/trip-detail/JoinTripPage';
 import { MyTripsPage } from './features/my-trips/MyTripsPage';
 import { BuddiesPage } from './features/buddies/BuddiesPage';
 import { BuddyRequestPage } from './features/buddies/BuddyRequestPage';
+import { WriteupComposerPage } from './features/write-ups/WriteupComposerPage';
 import { useRoute, installLinkInterceptor } from './shared/router';
 
-// Write-ups stays a non-functional placeholder until a real screen exists
-// for it (Epic 3+). Discover, My Trips, and Buddies are all real now.
 const NAV_ITEMS = [
   { label: 'Discover', href: '/' },
   { label: 'My Trips', href: '/my-trips' },
   { label: 'Buddies', href: '/buddies' },
-  { label: 'Write-ups', href: '#write-ups' },
+  { label: 'Write-ups', href: '/write-ups/new' },
 ];
 
 function CurrentPage({ pathname, search }: { pathname: string; search: string }) {
@@ -28,6 +27,7 @@ function CurrentPage({ pathname, search }: { pathname: string; search: string })
   if (pathname === '/join') return <JoinTripPage />;
   if (pathname === '/my-trips') return <MyTripsPage />;
   if (pathname === '/buddies') return <BuddiesPage />;
+  if (pathname === '/write-ups/new') return <WriteupComposerPage />;
 
   const buddyListingMatch = pathname.match(/^\/buddies\/([^/]+)$/);
   if (buddyListingMatch) {
