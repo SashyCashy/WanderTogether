@@ -188,6 +188,30 @@ test('POST /api/trips/:code/members creates a TripMember for a valid code', asyn
   assert.ok(body.joinedAt);
 });
 
+test('POST /api/trips/:code/members succeeds when the code is whitespace-padded', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Padded Code Trip',
+      destinationId: destination.id,
+      startDate: '2027-07-01',
+      endDate: '2027-07-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  const response = await fetch(`${baseUrl}/api/trips/${encodeURIComponent(`  ${created.id}  `)}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName: 'Sofia' }),
+  });
+
+  assert.equal(response.status, 201);
+  const body = (await response.json()) as { displayName: string };
+  assert.equal(body.displayName, 'Sofia');
+});
+
 test('POST /api/trips/:code/members returns 404 NOT_FOUND for an unknown code', async () => {
   const response = await fetch(`${baseUrl}/api/trips/not-a-real-code/members`, {
     method: 'POST',

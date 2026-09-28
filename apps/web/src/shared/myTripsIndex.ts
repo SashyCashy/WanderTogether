@@ -20,11 +20,19 @@ function readIndex(): MyTripsIndex {
   }
 }
 
-/** Adds `tripCode` to the local index if it isn't already present. */
+/**
+ * Adds `tripCode` to the local index. A `null` `displayName` (the
+ * creation path) never clobbers an existing entry — it only marks the
+ * trip as known. A real `displayName` (a successful join) always writes
+ * through, even if the key already exists: two tabs/windows resolving
+ * the same code concurrently must not let the second tab's confirmed,
+ * server-persisted name get silently dropped by a "first write wins"
+ * guard.
+ */
 export function addTripToIndex(tripCode: string, displayName: string | null = null): void {
   try {
     const index = readIndex();
-    if (tripCode in index) return;
+    if (displayName === null && tripCode in index) return;
     index[tripCode] = displayName;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(index));
   } catch {

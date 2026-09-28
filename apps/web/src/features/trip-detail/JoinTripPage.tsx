@@ -23,6 +23,7 @@ export function JoinTripPage() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (mutation.isPending) return;
+    if (!code.trim()) return;
     mutation.mutate(code);
   };
 

@@ -86,7 +86,7 @@ export async function addMember(tripCode: string, displayName: string): Promise<
   const trimmedCode = tripCode.trim();
   const trip = await prisma.trip.findUnique({ where: { id: trimmedCode } });
   if (!trip) {
-    throw new AppError('NOT_FOUND', `No Trip matches code "${tripCode}".`);
+    throw new AppError('NOT_FOUND', `No Trip matches code "${trimmedCode}".`);
   }
 
   return prisma.tripMember.create({

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { EmptyState } from '../../shared/components/EmptyState';
 import { useAnnounce } from '../../shared/LiveRegion';
 import { useTrip } from './useTrip';
@@ -32,6 +32,7 @@ function TravelerProfilePrompt({
   const [displayName, setDisplayName] = useState('');
   const mutation = useJoinTrip(code);
   const announce = useAnnounce();
+  const errorId = useId();
 
   const errorMessage =
     mutation.error instanceof ApiError
@@ -47,6 +48,10 @@ function TravelerProfilePrompt({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (mutation.isPending) return;
+    // A space-only name passes the native `required` check but is
+    // guaranteed to fail the server's own `.trim().min(1)` — catch it
+    // client-side instead of round-tripping to find out.
+    if (!displayName.trim()) return;
     // Pass the *server's* trimmed displayName back, not the raw local
     // value — the server trims via zod, and the local index must match
     // what's actually persisted.
@@ -70,11 +75,13 @@ function TravelerProfilePrompt({
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           maxLength={100}
+          aria-describedby={errorMessage ? errorId : undefined}
+          aria-invalid={errorMessage ? true : undefined}
           required
         />
 
         {errorMessage ? (
-          <p className="trip-detail-page__error" role="alert">
+          <p id={errorId} className="trip-detail-page__error" role="alert">
             {errorMessage}
           </p>
         ) : null}
