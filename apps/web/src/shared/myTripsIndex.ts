@@ -32,3 +32,12 @@ export function addTripToIndex(tripCode: string, displayName: string | null = nu
     // convenience, not a source of truth the app depends on to function.
   }
 }
+
+/**
+ * Key presence is what matters, not its value — the creator's `null`
+ * entry from Story 1.3 counts as "already recorded" and must not trigger
+ * Story 1.4's Traveler Profile prompt on revisit.
+ */
+export function hasTripInIndex(tripCode: string): boolean {
+  return tripCode in readIndex();
+}

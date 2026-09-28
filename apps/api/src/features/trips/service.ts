@@ -70,3 +70,27 @@ export async function getTripByCode(code: string): Promise<TripDetail> {
   }
   return trip;
 }
+
+export interface TripMemberSummary {
+  id: string;
+  displayName: string;
+  joinedAt: Date;
+}
+
+/**
+ * AD-6: the one path into membership — a direct Traveler Profile
+ * submission (this story) and Epic 2's buddy-request accept both call
+ * this same function, never inline `TripMember` creation.
+ */
+export async function addMember(tripCode: string, displayName: string): Promise<TripMemberSummary> {
+  const trimmedCode = tripCode.trim();
+  const trip = await prisma.trip.findUnique({ where: { id: trimmedCode } });
+  if (!trip) {
+    throw new AppError('NOT_FOUND', `No Trip matches code "${tripCode}".`);
+  }
+
+  return prisma.tripMember.create({
+    data: { id: nanoid(), tripId: trimmedCode, displayName },
+    select: { id: true, displayName: true, joinedAt: true },
+  });
+}

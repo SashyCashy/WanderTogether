@@ -51,3 +51,19 @@ export async function createTrip(input: CreateTripInput): Promise<TripDetail> {
   if (!response.ok) return throwForResponse(response);
   return response.json() as Promise<TripDetail>;
 }
+
+export interface TripMember {
+  id: string;
+  displayName: string;
+  joinedAt: string;
+}
+
+export async function joinTrip(code: string, displayName: string): Promise<TripMember> {
+  const response = await fetch(`/api/trips/${encodeURIComponent(code)}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName }),
+  });
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<TripMember>;
+}

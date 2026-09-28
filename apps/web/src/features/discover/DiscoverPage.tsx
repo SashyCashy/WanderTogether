@@ -69,9 +69,14 @@ export function DiscoverPage() {
           <h1>Discover</h1>
           <p className="discover-page__intro">Browse destinations and start planning — no account needed.</p>
         </div>
-        <a className="discover-page__start-trip" href="/trips/new">
-          Start a Trip
-        </a>
+        <div className="discover-page__header-actions">
+          <a className="discover-page__start-trip" href="/trips/new">
+            Start a Trip
+          </a>
+          <a className="discover-page__have-code" href="/join">
+            Have a code?
+          </a>
+        </div>
       </div>
 
       <div className="discover-page__filters">

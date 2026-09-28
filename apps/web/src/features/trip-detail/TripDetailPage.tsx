@@ -2,13 +2,89 @@ import { useEffect, useState } from 'react';
 import { EmptyState } from '../../shared/components/EmptyState';
 import { useAnnounce } from '../../shared/LiveRegion';
 import { useTrip } from './useTrip';
+import { useJoinTrip } from './useJoinTrip';
 import { ApiError } from './api';
+import { addTripToIndex, hasTripInIndex } from '../../shared/myTripsIndex';
 import './TripDetailPage.css';
 
 function formatDateRange(startDate: string | null, endDate: string | null): string | null {
   if (!startDate || !endDate) return null;
   const format = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   return `${format(startDate)} – ${format(endDate)}`;
+}
+
+/**
+ * AD-13's gate: a browser that already has `code` in its local index (the
+ * creator, from Story 1.3, or a prior joiner) skips straight to the
+ * header; any other browser sees this prompt first. Only a successful
+ * submission calls `addMember`/`addTripToIndex` — merely viewing never
+ * does (spec-1-4's Boundaries).
+ */
+function TravelerProfilePrompt({
+  code,
+  tripName,
+  onJoined,
+}: {
+  code: string;
+  tripName: string;
+  onJoined: (displayName: string) => void;
+}) {
+  const [displayName, setDisplayName] = useState('');
+  const mutation = useJoinTrip(code);
+  const announce = useAnnounce();
+
+  const errorMessage =
+    mutation.error instanceof ApiError
+      ? mutation.error.message
+      : mutation.error
+        ? 'Something went wrong joining this trip.'
+        : null;
+
+  useEffect(() => {
+    if (errorMessage) announce(errorMessage);
+  }, [errorMessage, announce]);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (mutation.isPending) return;
+    // Pass the *server's* trimmed displayName back, not the raw local
+    // value — the server trims via zod, and the local index must match
+    // what's actually persisted.
+    mutation.mutate(displayName, { onSuccess: (member) => onJoined(member.displayName) });
+  };
+
+  return (
+    <div className="trip-detail-page__profile-prompt">
+      <p className="trip-detail-page__eyebrow">Joining</p>
+      <h1 className="trip-detail-page__name">{tripName}</h1>
+      <p className="trip-detail-page__profile-intro">Set a display name so your group knows who's planning with them.</p>
+
+      <form onSubmit={handleSubmit} className="trip-detail-page__profile-form">
+        <label className="trip-detail-page__profile-label" htmlFor="traveler-display-name">
+          Display name
+        </label>
+        <input
+          id="traveler-display-name"
+          className="trip-detail-page__profile-input"
+          type="text"
+          value={displayName}
+          onChange={(event) => setDisplayName(event.target.value)}
+          maxLength={100}
+          required
+        />
+
+        {errorMessage ? (
+          <p className="trip-detail-page__error" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
+
+        <button type="submit" className="trip-detail-page__profile-submit" disabled={mutation.isPending}>
+          {mutation.isPending ? 'Joining…' : 'Continue'}
+        </button>
+      </form>
+    </div>
+  );
 }
 
 /**
@@ -20,6 +96,7 @@ function formatDateRange(startDate: string | null, endDate: string | null): stri
 export function TripDetailPage({ code }: { code: string }) {
   const { data: trip, isLoading, isError, error } = useTrip(code);
   const [copyLabel, setCopyLabel] = useState('Copy link');
+  const [hasProfile, setHasProfile] = useState(() => hasTripInIndex(code));
   const announce = useAnnounce();
 
   const isNotFound = error instanceof ApiError && error.status === 404;
@@ -50,6 +127,21 @@ export function TripDetailPage({ code }: { code: string }) {
           headline={isNotFound ? "This code doesn't match a trip." : "Couldn't load this."}
           body={isNotFound ? 'Check it and try again.' : 'Something went wrong loading this trip.'}
           primaryAction={{ label: 'Back to Discover', href: '/' }}
+        />
+      </main>
+    );
+  }
+
+  if (!hasProfile) {
+    return (
+      <main className="trip-detail-page">
+        <TravelerProfilePrompt
+          code={code}
+          tripName={trip.name}
+          onJoined={(displayName) => {
+            addTripToIndex(code, displayName);
+            setHasProfile(true);
+          }}
         />
       </main>
     );

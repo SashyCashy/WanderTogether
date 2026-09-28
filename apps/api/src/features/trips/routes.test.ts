@@ -7,10 +7,13 @@ import { after, test } from 'node:test';
 import Database from 'better-sqlite3';
 
 /**
- * Covers spec-1-3's I/O & Edge-Case Matrix for the trips slice:
+ * Covers spec-1-3's and spec-1-4's I/O & Edge-Case Matrices for the trips
+ * slice:
  *   - POST /api/trips: create from a Destination, unknown destinationId,
  *     endDate before startDate
  *   - GET /api/trips/:code: happy path, unknown code
+ *   - POST /api/trips/:code/members: happy path, unknown code, missing
+ *     displayName
  *
  * Same isolation pattern as discovery's routes.test.ts: its own throwaway
  * SQLite file, migrated by replaying every folder under prisma/migrations
@@ -145,4 +148,90 @@ test('GET /api/trips/:code returns 404 NOT_FOUND for an unknown code', async () 
   assert.equal(response.status, 404);
   const body = await response.json();
   assert.equal((body as { error: { code: string } }).error.code, 'NOT_FOUND');
+});
+
+test('POST /api/trips/:code/members creates a TripMember for a valid code', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Joinable Trip',
+      destinationId: destination.id,
+      startDate: '2027-07-01',
+      endDate: '2027-07-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName: 'Marcus' }),
+  });
+
+  assert.equal(response.status, 201);
+  const body = (await response.json()) as { id: string; displayName: string; joinedAt: string };
+  assert.equal(body.displayName, 'Marcus');
+  assert.ok(body.id);
+  assert.ok(body.joinedAt);
+});
+
+test('POST /api/trips/:code/members returns 404 NOT_FOUND for an unknown code', async () => {
+  const response = await fetch(`${baseUrl}/api/trips/not-a-real-code/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName: 'Sofia' }),
+  });
+
+  assert.equal(response.status, 404);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'NOT_FOUND');
+});
+
+test('POST /api/trips/:code/members returns 400 VALIDATION_ERROR when displayName is missing', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Nameless Joiner Trip',
+      destinationId: destination.id,
+      startDate: '2027-07-01',
+      endDate: '2027-07-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
+});
+
+test('POST /api/trips/:code/members returns 400 VALIDATION_ERROR when displayName is whitespace-only', async () => {
+  const createResponse = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Blank Joiner Trip',
+      destinationId: destination.id,
+      startDate: '2027-07-01',
+      endDate: '2027-07-05',
+    }),
+  });
+  const created = (await createResponse.json()) as { id: string };
+
+  const response = await fetch(`${baseUrl}/api/trips/${created.id}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName: '   ' }),
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
 });

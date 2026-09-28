@@ -4,6 +4,7 @@ import { Navigation } from './shared/components/Navigation';
 import { DiscoverPage } from './features/discover/DiscoverPage';
 import { CreateTripPage } from './features/trip-detail/CreateTripPage';
 import { TripDetailPage } from './features/trip-detail/TripDetailPage';
+import { JoinTripPage } from './features/trip-detail/JoinTripPage';
 import { useRoute, installLinkInterceptor } from './shared/router';
 
 // Placeholder top-level nav items other than Discover — those tabs stay
@@ -17,9 +18,13 @@ const NAV_ITEMS = [
 
 function CurrentPage({ pathname }: { pathname: string }) {
   if (pathname === '/trips/new') return <CreateTripPage />;
+  if (pathname === '/join') return <JoinTripPage />;
 
   const tripMatch = pathname.match(/^\/trip\/([^/]+)$/);
-  if (tripMatch) return <TripDetailPage code={decodeURIComponent(tripMatch[1])} />;
+  if (tripMatch) {
+    const code = decodeURIComponent(tripMatch[1]);
+    return <TripDetailPage key={code} code={code} />;
+  }
 
   return <DiscoverPage />;
 }
