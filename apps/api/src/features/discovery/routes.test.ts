@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { AddressInfo } from 'node:net';
 import { after, test } from 'node:test';
 import Database from 'better-sqlite3';
@@ -25,7 +26,9 @@ import Database from 'better-sqlite3';
 
 const tempDir = mkdtempSync(join(tmpdir(), 'wandertogether-routes-test-'));
 const tempDbPath = join(tempDir, 'test.db');
-process.env.DATABASE_URL = `file:${tempDbPath}`;
+// pathToFileURL (not manual string interpolation) so this resolves to a
+// valid `file:` URI regardless of the host OS's path separator.
+process.env.DATABASE_URL = pathToFileURL(tempDbPath).href;
 
 const migrationsDir = join(import.meta.dirname, '../../../prisma/migrations');
 const migrationFolders = readdirSync(migrationsDir, { withFileTypes: true })
@@ -33,11 +36,22 @@ const migrationFolders = readdirSync(migrationsDir, { withFileTypes: true })
   .map((entry) => entry.name)
   .sort();
 
-const db = new Database(tempDbPath);
-for (const folder of migrationFolders) {
-  db.exec(readFileSync(join(migrationsDir, folder, 'migration.sql'), 'utf-8'));
+try {
+  const db = new Database(tempDbPath);
+  try {
+    for (const folder of migrationFolders) {
+      db.exec(readFileSync(join(migrationsDir, folder, 'migration.sql'), 'utf-8'));
+    }
+  } finally {
+    db.close();
+  }
+} catch (error) {
+  // The `after()` hook below isn't registered yet if migration replay
+  // itself throws — clean up the temp dir here so a malformed
+  // migration.sql doesn't also leak a temp SQLite file on every run.
+  rmSync(tempDir, { recursive: true, force: true });
+  throw error;
 }
-db.close();
 
 const { createApp } = await import('../../app.js');
 const { prisma } = await import('../../shared/prisma.js');

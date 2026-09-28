@@ -8,6 +8,19 @@ export interface Destination {
   photoUrl: string;
 }
 
+/** Thrown by `fetchDestinations` so callers can branch on the shared error envelope's `status`/`code`. */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code?: string;
+
+  constructor(status: number, message: string, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 /**
  * One unfiltered fetch of the full catalog — filtering happens
  * client-side (spec-1-2's Boundaries & Constraints) against whatever this
@@ -16,7 +29,8 @@ export interface Destination {
 export async function fetchDestinations(): Promise<Destination[]> {
   const response = await fetch('/api/destinations');
   if (!response.ok) {
-    throw new Error(`Failed to fetch destinations: ${response.status}`);
+    const body = (await response.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
+    throw new ApiError(response.status, body?.error?.message ?? `Request failed with status ${response.status}`, body?.error?.code);
   }
   return response.json() as Promise<Destination[]>;
 }
