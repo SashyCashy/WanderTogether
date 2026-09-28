@@ -6,7 +6,10 @@ export interface TripWriteup {
   authorName: string | null;
   destinationId: string | null;
   createdAt: string;
+  destination: { name: string; country: string } | null;
 }
+
+export type TripWriteupDetail = TripWriteup;
 
 export interface CreateWriteupInput {
   title: string;
@@ -14,6 +17,19 @@ export interface CreateWriteupInput {
   authorName?: string;
   destinationId?: string;
   photos: File[];
+}
+
+export interface ListWriteupsParams {
+  destinationId?: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface WriteupsPage {
+  items: TripWriteup[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
 }
 
 /** Thrown by every fetch below so callers can branch on `status`/`code` (e.g. FILE_TOO_LARGE vs. a generic failure). */
@@ -50,4 +66,19 @@ export async function createWriteup(input: CreateWriteupInput): Promise<TripWrit
   const response = await fetch('/api/write-ups', { method: 'POST', body: form });
   if (!response.ok) return throwForResponse(response);
   return response.json() as Promise<TripWriteup>;
+}
+
+export async function fetchWriteups(params: ListWriteupsParams): Promise<WriteupsPage> {
+  const query = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
+  if (params.destinationId) query.set('destinationId', params.destinationId);
+
+  const response = await fetch(`/api/write-ups?${query.toString()}`);
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<WriteupsPage>;
+}
+
+export async function fetchWriteup(id: string): Promise<TripWriteupDetail> {
+  const response = await fetch(`/api/write-ups/${encodeURIComponent(id)}`);
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<TripWriteupDetail>;
 }

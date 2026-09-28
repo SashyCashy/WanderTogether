@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { upload, deleteUploadedFiles, cleanupOnUploadError } from '../../shared/uploads.js';
 import { AppError } from '../../shared/error-middleware.js';
-import { createWriteup } from './service.js';
+import { createWriteup, listWriteups, getWriteupById } from './service.js';
 
 const createWriteupSchema = z.object({
   title: z.string().trim().min(1, 'Title is required.').max(200),
@@ -12,7 +12,32 @@ const createWriteupSchema = z.object({
   destinationId: z.string().trim().min(1).optional(),
 });
 
+const listWriteupsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(10),
+  destinationId: z.string().trim().min(1).optional(),
+});
+
 export const writeUpsRouter = Router();
+
+writeUpsRouter.get('/', async (req, res, next) => {
+  try {
+    const query = listWriteupsQuerySchema.parse(req.query);
+    const result = await listWriteups(query);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+writeUpsRouter.get('/:id', async (req, res, next) => {
+  try {
+    const writeup = await getWriteupById(req.params.id);
+    res.json(writeup);
+  } catch (error) {
+    next(error);
+  }
+});
 
 writeUpsRouter.post('/', upload.array('photos', 6), cleanupOnUploadError, async (req: Request, res: Response, next: NextFunction) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? [];

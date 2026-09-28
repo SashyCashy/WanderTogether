@@ -9,13 +9,15 @@ import { MyTripsPage } from './features/my-trips/MyTripsPage';
 import { BuddiesPage } from './features/buddies/BuddiesPage';
 import { BuddyRequestPage } from './features/buddies/BuddyRequestPage';
 import { WriteupComposerPage } from './features/write-ups/WriteupComposerPage';
+import { WriteupsPage } from './features/write-ups/WriteupsPage';
+import { WriteupDetailPage } from './features/write-ups/WriteupDetailPage';
 import { useRoute, installLinkInterceptor } from './shared/router';
 
 const NAV_ITEMS = [
   { label: 'Discover', href: '/' },
   { label: 'My Trips', href: '/my-trips' },
   { label: 'Buddies', href: '/buddies' },
-  { label: 'Write-ups', href: '/write-ups/new' },
+  { label: 'Write-ups', href: '/write-ups' },
 ];
 
 function CurrentPage({ pathname, search }: { pathname: string; search: string }) {
@@ -28,6 +30,7 @@ function CurrentPage({ pathname, search }: { pathname: string; search: string })
   if (pathname === '/my-trips') return <MyTripsPage />;
   if (pathname === '/buddies') return <BuddiesPage />;
   if (pathname === '/write-ups/new') return <WriteupComposerPage />;
+  if (pathname === '/write-ups') return <WriteupsPage />;
 
   const buddyListingMatch = pathname.match(/^\/buddies\/([^/]+)$/);
   if (buddyListingMatch) {
@@ -38,6 +41,17 @@ function CurrentPage({ pathname, search }: { pathname: string; search: string })
       buddyListingId = buddyListingMatch[1];
     }
     return <BuddyRequestPage key={buddyListingId} buddyListingId={buddyListingId} />;
+  }
+
+  const writeupMatch = pathname.match(/^\/write-ups\/([^/]+)$/);
+  if (writeupMatch) {
+    let writeupId: string;
+    try {
+      writeupId = decodeURIComponent(writeupMatch[1]);
+    } catch {
+      writeupId = writeupMatch[1];
+    }
+    return <WriteupDetailPage key={writeupId} writeupId={writeupId} />;
   }
 
   const tripMatch = pathname.match(/^\/trip\/([^/]+)$/);
