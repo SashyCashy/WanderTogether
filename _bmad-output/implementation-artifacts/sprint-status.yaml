@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-27-2026 13:42
-last_updated: 09-28-2026 19:18
+last_updated: 09-29-2026 00:35
 project: WanderTogether
 project_key: NOKEY
 tracking_system: file-system
@@ -42,20 +42,51 @@ development_status:
   1-4-join-a-trip-via-code-link-and-set-a-traveler-profile: done
   1-5-edit-the-shared-itinerary: done
   1-6-view-my-trips: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   epic-2: done
   2-1-mark-a-trip-open-to-buddies: done
   2-2-browse-open-trips-and-request-to-join: done
   2-3-accept-or-decline-a-buddy-request: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: done
   3-1-publish-a-trip-write-up: done
   3-2-browse-and-read-trip-write-ups: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   epic-4: done
   4-1-browse-accommodation-listings: done
   4-2-attach-an-accommodation-listing-to-a-trip: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
+action_items:
+  - id: "epic-1-retro-item-1-extract-a-shared-apps-web-src-shared-api"
+    epic: 1
+    action: "Extract a shared apps/web/src/shared/api.ts exporting ApiError and throwForResponse,
+      and migrate all 5 feature slices api.ts files onto it."
+    owner: "next dev session"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-09-28.md"
+  - id: "epic-1-retro-item-2-stand-up-a-frontend-test-runner-for-apps"
+    epic: 1
+    action: "Stand up a frontend test runner for apps/web (e.g. Vitest + Testing Library)
+      — raised and correctly deferred 5 separate times across Epic 1 alone."
+    owner: "next dev session"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-09-28.md"
+  - id: "epic-2-retro-item-3-split-apps-api-src-features-trips-routes"
+    epic: 2
+    action: "Split apps/api/src/features/trips/routes.test.ts by concern (itinerary
+      / settings-PATCH / buddy-requests / accommodation-attach) once it next grows
+      materially."
+    owner: "next dev session touching this file"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-09-28.md"
+  - id: "epic-4-retro-item-4-extract-a-shared-apps-web-src-shared-api"
+    epic: 4
+    action: "Extract a shared apps/web/src/shared/api.ts and migrate all 5 feature
+      slices onto it — now 5/5 slices duplicated with no further epic to add a 6th
+      copy."
+    owner: "next dev session"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-09-29.md"
