@@ -425,3 +425,146 @@ test('PUT /api/trips/:code/itinerary returns 400 VALIDATION_ERROR when a line ha
   const trip = (await getResponse.json()) as { itineraryItems: unknown[] };
   assert.equal(trip.itineraryItems.length, 0);
 });
+
+async function createTripForSettingsTest(name: string): Promise<string> {
+  const response = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      destinationId: destination.id,
+      startDate: '2027-09-01',
+      endDate: '2027-09-05',
+    }),
+  });
+  const trip = (await response.json()) as { id: string };
+  return trip.id;
+}
+
+test('PATCH /api/trips/:code toggles openToBuddies without touching buddyNote', async () => {
+  const tripId = await createTripForSettingsTest('Buddy Toggle Trip');
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ openToBuddies: true }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { openToBuddies: boolean; buddyNote: string | null };
+  assert.equal(trip.openToBuddies, true);
+  assert.equal(trip.buddyNote, null);
+});
+
+test('PATCH /api/trips/:code toggling off leaves buddyNote untouched', async () => {
+  const tripId = await createTripForSettingsTest('Buddy Toggle Off Trip');
+
+  await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ openToBuddies: true, buddyNote: '2 spots, chill about hostels' }),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ openToBuddies: false }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { openToBuddies: boolean; buddyNote: string | null };
+  assert.equal(trip.openToBuddies, false);
+  assert.equal(trip.buddyNote, '2 spots, chill about hostels');
+});
+
+test('PATCH /api/trips/:code saves a note independently of openToBuddies', async () => {
+  const tripId = await createTripForSettingsTest('Buddy Note Trip');
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ buddyNote: 'Looking for two more.' }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { openToBuddies: boolean; buddyNote: string | null };
+  assert.equal(trip.buddyNote, 'Looking for two more.');
+  assert.equal(trip.openToBuddies, false);
+});
+
+test('PATCH /api/trips/:code returns 400 VALIDATION_ERROR for an empty body', async () => {
+  const tripId = await createTripForSettingsTest('Empty Patch Trip');
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
+});
+
+test('PATCH /api/trips/:code returns 404 NOT_FOUND for an unknown code', async () => {
+  const response = await fetch(`${baseUrl}/api/trips/not-a-real-code`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ openToBuddies: true }),
+  });
+
+  assert.equal(response.status, 404);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'NOT_FOUND');
+});
+
+test('PATCH /api/trips/:code applies both fields together in one request', async () => {
+  const tripId = await createTripForSettingsTest('Combined Patch Trip');
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ openToBuddies: true, buddyNote: 'Room for two more' }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { openToBuddies: boolean; buddyNote: string | null };
+  assert.equal(trip.openToBuddies, true);
+  assert.equal(trip.buddyNote, 'Room for two more');
+});
+
+test('PATCH /api/trips/:code accepts a buddyNote at the 280-char limit and rejects one over it', async () => {
+  const tripId = await createTripForSettingsTest('Note Length Trip');
+
+  const atLimit = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ buddyNote: 'x'.repeat(280) }),
+  });
+  assert.equal(atLimit.status, 200);
+  const atLimitBody = (await atLimit.json()) as { buddyNote: string | null };
+  assert.equal(atLimitBody.buddyNote?.length, 280);
+
+  const overLimit = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ buddyNote: 'x'.repeat(281) }),
+  });
+  assert.equal(overLimit.status, 400);
+  const overLimitBody = await overLimit.json();
+  assert.equal((overLimitBody as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
+});
+
+test('PATCH /api/trips/:code normalizes an empty-string buddyNote to null', async () => {
+  const tripId = await createTripForSettingsTest('Empty Note Trip');
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ buddyNote: '   ' }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { buddyNote: string | null };
+  assert.equal(trip.buddyNote, null);
+});

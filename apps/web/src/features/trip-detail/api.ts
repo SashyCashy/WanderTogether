@@ -17,6 +17,8 @@ export interface TripDetail {
     country: string;
   };
   itineraryItems: ItineraryItem[];
+  openToBuddies: boolean;
+  buddyNote: string | null;
 }
 
 export interface CreateTripInput {
@@ -91,4 +93,20 @@ export async function updateItinerary(code: string, items: ItineraryItemInput[])
   });
   if (!response.ok) return throwForResponse(response);
   return response.json() as Promise<ItineraryItem[]>;
+}
+
+export interface TripSettingsPatch {
+  openToBuddies?: boolean;
+  buddyNote?: string | null;
+}
+
+/** AD-8: PATCH-partial-merge — the opposite rule from `updateItinerary`'s full overwrite. Only the fields present in `patch` change. */
+export async function updateTripSettings(code: string, patch: TripSettingsPatch): Promise<TripDetail> {
+  const response = await fetch(`/api/trips/${encodeURIComponent(code)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<TripDetail>;
 }

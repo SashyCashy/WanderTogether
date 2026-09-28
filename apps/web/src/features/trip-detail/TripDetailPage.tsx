@@ -6,6 +6,7 @@ import { useJoinTrip } from './useJoinTrip';
 import { ApiError } from './api';
 import { addTripToIndex, hasTripInIndex } from '../../shared/myTripsIndex';
 import { ItinerarySection } from './ItinerarySection';
+import { BuddyToggle } from './BuddyToggle';
 import './TripDetailPage.css';
 
 function formatDateRange(startDate: string | null, endDate: string | null): string | null {
@@ -197,6 +198,7 @@ export function TripDetailPage({ code }: { code: string }) {
       </div>
 
       <ItinerarySection tripCode={trip.id} items={trip.itineraryItems} />
+      <BuddyToggle tripCode={trip.id} openToBuddies={trip.openToBuddies} buddyNote={trip.buddyNote} />
     </main>
   );
 }

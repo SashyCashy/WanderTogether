@@ -33,6 +33,8 @@ export interface TripDetail {
     country: string;
   };
   itineraryItems: ItineraryItemSummary[];
+  openToBuddies: boolean;
+  buddyNote: string | null;
 }
 
 const TRIP_SELECT = {
@@ -48,6 +50,8 @@ const TRIP_SELECT = {
     select: { id: true, day: true, title: true, note: true },
     orderBy: { createdAt: 'asc' },
   },
+  openToBuddies: true,
+  buddyNote: true,
 } as const;
 
 /**
@@ -159,4 +163,32 @@ export async function updateItinerary(tripCode: string, items: ItineraryItemInpu
   }
 
   return results.slice(1) as ItineraryItemSummary[];
+}
+
+export interface TripSettingsPatch {
+  openToBuddies?: boolean;
+  buddyNote?: string | null;
+}
+
+/**
+ * AD-8: `openToBuddies`/`buddyNote` are PATCH-partial-merge, the opposite
+ * rule from `updateItinerary`'s full-resource overwrite — applying the
+ * same overwrite semantics to the whole Trip record would risk two
+ * concurrent edits (e.g. toggling buddies from one tab while editing the
+ * itinerary from another) silently erasing each other's work. Prisma's
+ * `update` already only sets the keys present in `data`, so an absent
+ * field here is simply left untouched — no explicit merge logic needed.
+ */
+export async function updateTripSettings(tripCode: string, patch: TripSettingsPatch): Promise<TripDetail> {
+  const trimmedCode = tripCode.trim();
+  const trip = await prisma.trip.findUnique({ where: { id: trimmedCode } });
+  if (!trip) {
+    throw new AppError('NOT_FOUND', `No Trip matches code "${trimmedCode}".`);
+  }
+
+  return prisma.trip.update({
+    where: { id: trimmedCode },
+    data: patch,
+    select: TRIP_SELECT,
+  });
 }

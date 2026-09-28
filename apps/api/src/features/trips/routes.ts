@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { createTrip, getTripByCode, addMember, updateItinerary } from './service.js';
+import { createTrip, getTripByCode, addMember, updateItinerary, updateTripSettings } from './service.js';
 import { AppError } from '../../shared/error-middleware.js';
 
 // z.iso.date() (not z.coerce.date()) — the spec's Always constraint requires
@@ -28,6 +28,25 @@ const updateItinerarySchema = z
     }),
   )
   .max(200, 'An itinerary can have at most 200 lines.');
+
+const updateTripSettingsSchema = z
+  .object({
+    openToBuddies: z.boolean().optional(),
+    // Normalize an empty/whitespace-only note to null server-side too —
+    // not just in the client's commitNote — so a direct API call can't
+    // persist "" as a distinct "cleared note" representation from null.
+    // `.transform` sits before `.nullable().optional()` so it only runs
+    // when a string was actually sent — an explicit `null` or an absent
+    // field pass through untouched.
+    buddyNote: z
+      .string()
+      .trim()
+      .max(280)
+      .transform((value) => (value === '' ? null : value))
+      .nullable()
+      .optional(),
+  })
+  .refine((patch) => Object.keys(patch).length > 0, { message: 'At least one field (openToBuddies, buddyNote) is required.' });
 
 export const tripsRouter = Router();
 
@@ -68,6 +87,16 @@ tripsRouter.put('/:code/itinerary', async (req, res, next) => {
     const items = updateItinerarySchema.parse(req.body);
     const itineraryItems = await updateItinerary(req.params.code, items);
     res.json(itineraryItems);
+  } catch (error) {
+    next(error);
+  }
+});
+
+tripsRouter.patch('/:code', async (req, res, next) => {
+  try {
+    const patch = updateTripSettingsSchema.parse(req.body);
+    const trip = await updateTripSettings(req.params.code, patch);
+    res.json(trip);
   } catch (error) {
     next(error);
   }
