@@ -19,6 +19,7 @@ export function CreateTripPage() {
   const [destinationId, setDestinationId] = useState(prefilledDestinationId);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [dateRangeError, setDateRangeError] = useState<string | null>(null);
   const mutation = useCreateTrip();
   const announce = useAnnounce();
 
@@ -34,6 +35,12 @@ export function CreateTripPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (mutation.isPending) return;
+    if (endDate < startDate) {
+      setDateRangeError('End date must be on or after the start date.');
+      return;
+    }
+    setDateRangeError(null);
     mutation.mutate({ name, destinationId, startDate, endDate });
   };
 
@@ -47,6 +54,10 @@ export function CreateTripPage() {
   useEffect(() => {
     if (errorMessage) announce(errorMessage);
   }, [errorMessage, announce]);
+
+  useEffect(() => {
+    if (dateRangeError) announce(dateRangeError);
+  }, [dateRangeError, announce]);
 
   return (
     <main className="create-trip-page">
@@ -116,7 +127,10 @@ export function CreateTripPage() {
               className="create-trip-page__input"
               type="date"
               value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
+              onChange={(event) => {
+                setStartDate(event.target.value);
+                setDateRangeError(null);
+              }}
               required
             />
           </div>
@@ -129,11 +143,22 @@ export function CreateTripPage() {
               className="create-trip-page__input"
               type="date"
               value={endDate}
-              onChange={(event) => setEndDate(event.target.value)}
+              onChange={(event) => {
+                setEndDate(event.target.value);
+                setDateRangeError(null);
+              }}
+              aria-describedby={dateRangeError ? 'trip-date-range-error' : undefined}
+              aria-invalid={dateRangeError ? true : undefined}
               required
             />
           </div>
         </div>
+
+        {dateRangeError ? (
+          <p id="trip-date-range-error" className="create-trip-page__field-error" role="alert">
+            {dateRangeError}
+          </p>
+        ) : null}
 
         {errorMessage ? (
           <p className="create-trip-page__error" role="alert">

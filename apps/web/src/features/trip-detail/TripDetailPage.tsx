@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EmptyState } from '../../shared/components/EmptyState';
 import { useAnnounce } from '../../shared/LiveRegion';
 import { useTrip } from './useTrip';
@@ -98,6 +98,13 @@ export function TripDetailPage({ code }: { code: string }) {
   const [copyLabel, setCopyLabel] = useState('Copy link');
   const [hasProfile, setHasProfile] = useState(() => hasTripInIndex(code));
   const announce = useAnnounce();
+  const copyResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimeout.current) clearTimeout(copyResetTimeout.current);
+    };
+  }, []);
 
   const isNotFound = error instanceof ApiError && error.status === 404;
 
@@ -155,10 +162,12 @@ export function TripDetailPage({ code }: { code: string }) {
       await navigator.clipboard.writeText(tripUrl);
       setCopyLabel('Copied');
       announce('Trip link copied.');
-      setTimeout(() => setCopyLabel('Copy link'), 2000);
+      if (copyResetTimeout.current) clearTimeout(copyResetTimeout.current);
+      copyResetTimeout.current = setTimeout(() => setCopyLabel('Copy link'), 2000);
     } catch {
       // Clipboard API can be unavailable/denied — the code is still
       // visible in the chip for manual copying.
+      announce("Couldn't copy the link. You can copy the code from the chip instead.");
     }
   };
 

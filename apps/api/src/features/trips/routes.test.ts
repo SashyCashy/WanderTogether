@@ -67,9 +67,21 @@ test('POST /api/trips creates a Trip from a Destination and returns it', async (
   });
 
   assert.equal(response.status, 201);
-  const body = (await response.json()) as { id: string; name: string; destination: { id: string } };
+  const body = (await response.json()) as {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    createdAt: string;
+    destination: { id: string; name: string; country: string };
+  };
   assert.equal(body.name, 'Lisbon Friends Trip');
+  assert.equal(body.startDate.slice(0, 10), '2027-03-14');
+  assert.equal(body.endDate.slice(0, 10), '2027-03-20');
+  assert.ok(body.createdAt);
   assert.equal(body.destination.id, destination.id);
+  assert.equal(body.destination.name, destination.name);
+  assert.equal(body.destination.country, destination.country);
   assert.ok(body.id.length >= 10);
 });
 

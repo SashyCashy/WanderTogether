@@ -16,13 +16,28 @@ const NAV_ITEMS = [
   { label: 'Write-ups', href: '#write-ups' },
 ];
 
-function CurrentPage({ pathname }: { pathname: string }) {
-  if (pathname === '/trips/new') return <CreateTripPage />;
+function CurrentPage({ pathname, search }: { pathname: string; search: string }) {
+  // Keyed on the full search string, not just pathname: browser back/forward
+  // between two different `?destinationId=` links re-renders the same
+  // component instance rather than remounting it, which would otherwise
+  // leave `destinationId` state stale relative to the URL.
+  if (pathname === '/trips/new') return <CreateTripPage key={search} />;
   if (pathname === '/join') return <JoinTripPage />;
 
   const tripMatch = pathname.match(/^\/trip\/([^/]+)$/);
   if (tripMatch) {
-    const code = decodeURIComponent(tripMatch[1]);
+    // A pasted link can carry malformed percent-encoding; decodeURIComponent
+    // throws a URIError on that, which with no error boundary anywhere in
+    // the app would otherwise crash the render to a blank page — exactly
+    // what "never a blank/broken page" forbids. Falling back to the raw,
+    // undecoded segment just makes the code lookup fail normally, landing
+    // on Trip Detail's existing "doesn't match a trip" state instead.
+    let code: string;
+    try {
+      code = decodeURIComponent(tripMatch[1]);
+    } catch {
+      code = tripMatch[1];
+    }
     return <TripDetailPage key={code} code={code} />;
   }
 
@@ -31,14 +46,14 @@ function CurrentPage({ pathname }: { pathname: string }) {
 
 export default function App() {
   const route = useRoute();
-  const pathname = route.split('?')[0];
+  const [pathname, search = ''] = route.split('?');
 
   useEffect(() => installLinkInterceptor(), []);
 
   return (
     <LiveRegionProvider>
       <Navigation items={NAV_ITEMS} activeHref={pathname === '/' ? '/' : undefined} />
-      <CurrentPage pathname={pathname} />
+      <CurrentPage pathname={pathname} search={search} />
     </LiveRegionProvider>
   );
 }
