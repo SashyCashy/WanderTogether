@@ -1,0 +1,22 @@
+.accommodations-panel {
+  padding: var(--space-section-gap-mobile) 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .accommodations-panel {
+    padding-top: var(--space-section-gap);
+  }
+}
+
+.accommodations-panel__heading {
+  margin: 0 0 var(--space-gutter);
+  font-size: var(--font-headline-size);
+  font-weight: var(--font-headline-weight);
+  line-height: var(--font-headline-line-height);
+}
+
+.accommodations-panel__list {
+  display: flex;
+  flex-direction: column;
+}

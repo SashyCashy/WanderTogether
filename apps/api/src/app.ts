@@ -6,6 +6,7 @@ import { discoveryRouter } from './features/discovery/routes.js';
 import { tripsRouter } from './features/trips/routes.js';
 import { buddiesRouter } from './features/buddies/routes.js';
 import { writeUpsRouter } from './features/write-ups/routes.js';
+import { accommodationsRouter } from './features/accommodations/routes.js';
 
 /**
  * Builds the Express app without binding a port, so tests (routes.test.ts)
@@ -36,6 +37,7 @@ export function createApp() {
   app.use('/api/trips', tripsRouter);
   app.use('/api/buddies', buddiesRouter);
   app.use('/api/write-ups', writeUpsRouter);
+  app.use('/api/accommodations', accommodationsRouter);
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
