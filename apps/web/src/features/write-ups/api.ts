@@ -1,3 +1,7 @@
+import { ApiError, throwForResponse } from '../../shared/api';
+
+export { ApiError };
+
 export interface TripWriteup {
   id: string;
   title: string;
@@ -30,24 +34,6 @@ export interface WriteupsPage {
   totalCount: number;
   page: number;
   pageSize: number;
-}
-
-/** Thrown by every fetch below so callers can branch on `status`/`code` (e.g. FILE_TOO_LARGE vs. a generic failure). */
-export class ApiError extends Error {
-  readonly status: number;
-  readonly code?: string;
-
-  constructor(status: number, message: string, code?: string) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.code = code;
-  }
-}
-
-async function throwForResponse(response: Response): Promise<never> {
-  const body = (await response.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
-  throw new ApiError(response.status, body?.error?.message ?? `Request failed with status ${response.status}`, body?.error?.code);
 }
 
 /**

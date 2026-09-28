@@ -1,3 +1,7 @@
+import { ApiError, throwForResponse } from '../../shared/api';
+
+export { ApiError };
+
 export interface ItineraryItem {
   id: string;
   day: string;
@@ -37,24 +41,6 @@ export interface CreateTripInput {
   destinationId: string;
   startDate: string;
   endDate: string;
-}
-
-/** Thrown by `fetchTrip`/`createTrip` so callers can branch on `status`/`code` (e.g. a 404 vs. a generic failure). */
-export class ApiError extends Error {
-  readonly status: number;
-  readonly code?: string;
-
-  constructor(status: number, message: string, code?: string) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.code = code;
-  }
-}
-
-async function throwForResponse(response: Response): Promise<never> {
-  const body = (await response.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
-  throw new ApiError(response.status, body?.error?.message ?? `Request failed with status ${response.status}`, body?.error?.code);
 }
 
 export async function fetchTrip(code: string): Promise<TripDetail> {

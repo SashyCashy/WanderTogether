@@ -8,3 +8,4 @@ generated/
 !.env.example
 apps/api/uploads/*
 !apps/api/uploads/.gitkeep
+.claude/worktrees/
