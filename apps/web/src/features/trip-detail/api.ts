@@ -5,6 +5,15 @@ export interface ItineraryItem {
   note: string | null;
 }
 
+export interface AttachedAccommodation {
+  id: string;
+  name: string;
+  type: string;
+  pricePerNightUSD: number;
+  rating: number;
+  photoUrl: string;
+}
+
 export interface TripDetail {
   id: string;
   name: string;
@@ -19,6 +28,8 @@ export interface TripDetail {
   itineraryItems: ItineraryItem[];
   openToBuddies: boolean;
   buddyNote: string | null;
+  attachedAccommodationId: string | null;
+  attachedAccommodation: AttachedAccommodation | null;
 }
 
 export interface CreateTripInput {
@@ -98,6 +109,7 @@ export async function updateItinerary(code: string, items: ItineraryItemInput[])
 export interface TripSettingsPatch {
   openToBuddies?: boolean;
   buddyNote?: string | null;
+  attachedAccommodationId?: string | null;
 }
 
 /** AD-8: PATCH-partial-merge — the opposite rule from `updateItinerary`'s full overwrite. Only the fields present in `patch` change. */

@@ -16,6 +16,15 @@ export interface ItineraryItemSummary {
   note: string | null;
 }
 
+export interface AttachedAccommodationSummary {
+  id: string;
+  name: string;
+  type: string;
+  pricePerNightUSD: number;
+  rating: number;
+  photoUrl: string;
+}
+
 /**
  * The trimmed shape both `createTrip` and `getTripByCode` return —
  * everything Trip Detail's header + itinerary needs, nothing from later
@@ -35,6 +44,8 @@ export interface TripDetail {
   itineraryItems: ItineraryItemSummary[];
   openToBuddies: boolean;
   buddyNote: string | null;
+  attachedAccommodationId: string | null;
+  attachedAccommodation: AttachedAccommodationSummary | null;
 }
 
 const TRIP_SELECT = {
@@ -52,6 +63,10 @@ const TRIP_SELECT = {
   },
   openToBuddies: true,
   buddyNote: true,
+  attachedAccommodationId: true,
+  attachedAccommodation: {
+    select: { id: true, name: true, type: true, pricePerNightUSD: true, rating: true, photoUrl: true },
+  },
 } as const;
 
 /**
@@ -171,22 +186,34 @@ export async function updateItinerary(tripCode: string, items: ItineraryItemInpu
 export interface TripSettingsPatch {
   openToBuddies?: boolean;
   buddyNote?: string | null;
+  attachedAccommodationId?: string | null;
 }
 
 /**
- * AD-8: `openToBuddies`/`buddyNote` are PATCH-partial-merge, the opposite
- * rule from `updateItinerary`'s full-resource overwrite — applying the
- * same overwrite semantics to the whole Trip record would risk two
- * concurrent edits (e.g. toggling buddies from one tab while editing the
- * itinerary from another) silently erasing each other's work. Prisma's
- * `update` already only sets the keys present in `data`, so an absent
- * field here is simply left untouched — no explicit merge logic needed.
+ * AD-8: `openToBuddies`/`buddyNote`/`attachedAccommodationId` are all
+ * PATCH-partial-merge, the opposite rule from `updateItinerary`'s
+ * full-resource overwrite — applying the same overwrite semantics to the
+ * whole Trip record would risk two concurrent edits (e.g. attaching an
+ * accommodation from one tab while editing the itinerary from another)
+ * silently erasing each other's work. Prisma's `update` already only sets
+ * the keys present in `data`, so an absent field here is simply left
+ * untouched — no explicit merge logic needed.
  */
 export async function updateTripSettings(tripCode: string, patch: TripSettingsPatch): Promise<TripDetail> {
   const trimmedCode = tripCode.trim();
   const trip = await prisma.trip.findUnique({ where: { id: trimmedCode } });
   if (!trip) {
     throw new AppError('NOT_FOUND', `No Trip matches code "${trimmedCode}".`);
+  }
+
+  // Same idiom `createTrip`'s `destinationId` check already uses: `null`
+  // (clearing the field) skips validation, only a non-null id is checked
+  // against the real catalog.
+  if (patch.attachedAccommodationId) {
+    const accommodation = await prisma.accommodationListing.findUnique({ where: { id: patch.attachedAccommodationId } });
+    if (!accommodation) {
+      throw new AppError('VALIDATION_ERROR', 'attachedAccommodationId does not match a known accommodation listing.');
+    }
   }
 
   return prisma.trip.update({

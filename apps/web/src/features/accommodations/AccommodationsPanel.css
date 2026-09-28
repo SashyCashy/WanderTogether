@@ -20,3 +20,55 @@
   display: flex;
   flex-direction: column;
 }
+
+.accommodations-panel__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-gutter);
+  margin-bottom: var(--space-gutter);
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.accommodations-panel__confirm-text {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-body-size);
+}
+
+.accommodations-panel__confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.accommodations-panel__confirm-button,
+.accommodations-panel__cancel-button {
+  min-height: var(--touch-target-min);
+  padding: 0 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  letter-spacing: var(--font-label-letter-spacing);
+  cursor: pointer;
+}
+
+.accommodations-panel__confirm-button {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+.accommodations-panel__cancel-button {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.accommodations-panel__confirm-button:disabled,
+.accommodations-panel__cancel-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

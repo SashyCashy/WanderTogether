@@ -50,8 +50,11 @@ const updateTripSettingsSchema = z
       .transform((value) => (value === '' ? null : value))
       .nullable()
       .optional(),
+    attachedAccommodationId: z.string().trim().min(1).nullable().optional(),
   })
-  .refine((patch) => Object.keys(patch).length > 0, { message: 'At least one field (openToBuddies, buddyNote) is required.' });
+  .refine((patch) => Object.keys(patch).length > 0, {
+    message: 'At least one field (openToBuddies, buddyNote, attachedAccommodationId) is required.',
+  });
 
 export const tripsRouter = Router();
 

@@ -197,7 +197,12 @@ export function TripDetailPage({ code }: { code: string }) {
       <ItinerarySection tripCode={trip.id} items={trip.itineraryItems} />
       <BuddyToggle tripCode={trip.id} openToBuddies={trip.openToBuddies} buddyNote={trip.buddyNote} />
       <PendingBuddyRequests tripCode={trip.id} />
-      <AccommodationsPanel destinationId={trip.destination.id} />
+      <AccommodationsPanel
+        tripCode={trip.id}
+        destinationId={trip.destination.id}
+        attachedAccommodationId={trip.attachedAccommodationId}
+        attachedAccommodationName={trip.attachedAccommodation?.name ?? null}
+      />
     </main>
   );
 }

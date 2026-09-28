@@ -569,6 +569,128 @@ test('PATCH /api/trips/:code normalizes an empty-string buddyNote to null', asyn
   assert.equal(trip.buddyNote, null);
 });
 
+const lisbonDestination = await prisma.destination.findFirstOrThrow({ where: { slug: 'lisbon' } });
+const lisbonAccommodations = await prisma.accommodationListing.findMany({
+  where: { destinationId: lisbonDestination.id },
+  orderBy: { name: 'asc' },
+});
+
+async function createLisbonTripForAccommodationTest(name: string): Promise<string> {
+  const response = await fetch(`${baseUrl}/api/trips`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, destinationId: lisbonDestination.id, startDate: '2027-09-01', endDate: '2027-09-05' }),
+  });
+  const trip = (await response.json()) as { id: string };
+  return trip.id;
+}
+
+test('PATCH /api/trips/:code attaches an accommodation listing', async () => {
+  const tripId = await createLisbonTripForAccommodationTest('Attach Accommodation Trip');
+  const listing = lisbonAccommodations[0];
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: listing.id }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { attachedAccommodationId: string | null; attachedAccommodation: { id: string; name: string } | null };
+  assert.equal(trip.attachedAccommodationId, listing.id);
+  assert.equal(trip.attachedAccommodation?.id, listing.id);
+  assert.equal(trip.attachedAccommodation?.name, listing.name);
+});
+
+test('PATCH /api/trips/:code replaces an already-attached accommodation listing', async () => {
+  const tripId = await createLisbonTripForAccommodationTest('Replace Accommodation Trip');
+  const [first, second] = lisbonAccommodations;
+
+  await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: first.id }),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: second.id }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { attachedAccommodationId: string | null };
+  assert.equal(trip.attachedAccommodationId, second.id);
+});
+
+test('PATCH /api/trips/:code returns 400 VALIDATION_ERROR for an unknown attachedAccommodationId, leaving the Trip unchanged', async () => {
+  const tripId = await createLisbonTripForAccommodationTest('Unknown Accommodation Trip');
+  const listing = lisbonAccommodations[0];
+
+  await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: listing.id }),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: 'not-a-real-accommodation' }),
+  });
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal((body as { error: { code: string } }).error.code, 'VALIDATION_ERROR');
+
+  const tripAfter = (await (await fetch(`${baseUrl}/api/trips/${tripId}`)).json()) as { attachedAccommodationId: string | null };
+  assert.equal(tripAfter.attachedAccommodationId, listing.id, 'a rejected attach must not change the Trip’s existing attachment');
+});
+
+test('PATCH /api/trips/:code attaching an accommodation never touches openToBuddies/buddyNote', async () => {
+  const tripId = await createLisbonTripForAccommodationTest('Independent Fields Trip');
+  const listing = lisbonAccommodations[0];
+
+  await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ openToBuddies: true, buddyNote: 'Looking for one more.' }),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: listing.id }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { openToBuddies: boolean; buddyNote: string | null; attachedAccommodationId: string | null };
+  assert.equal(trip.openToBuddies, true);
+  assert.equal(trip.buddyNote, 'Looking for one more.');
+  assert.equal(trip.attachedAccommodationId, listing.id);
+});
+
+test('PATCH /api/trips/:code accepts attachedAccommodationId: null to clear an attachment', async () => {
+  const tripId = await createLisbonTripForAccommodationTest('Clear Accommodation Trip');
+  const listing = lisbonAccommodations[0];
+
+  await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: listing.id }),
+  });
+
+  const response = await fetch(`${baseUrl}/api/trips/${tripId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachedAccommodationId: null }),
+  });
+
+  assert.equal(response.status, 200);
+  const trip = (await response.json()) as { attachedAccommodationId: string | null; attachedAccommodation: unknown };
+  assert.equal(trip.attachedAccommodationId, null);
+  assert.equal(trip.attachedAccommodation, null);
+});
+
 /** Opens `tripId` to buddies and submits one request against it, returning the new request's id. */
 async function submitRequestToTrip(tripId: string, requesterName: string): Promise<string> {
   await fetch(`${baseUrl}/api/trips/${tripId}`, {
