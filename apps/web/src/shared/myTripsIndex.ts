@@ -49,3 +49,8 @@ export function addTripToIndex(tripCode: string, displayName: string | null = nu
 export function hasTripInIndex(tripCode: string): boolean {
   return tripCode in readIndex();
 }
+
+/** The full stored index — Story 1.6's My Trips screen reads this to know which Trip Codes to resolve. */
+export function getMyTripsIndex(): MyTripsIndex {
+  return readIndex();
+}

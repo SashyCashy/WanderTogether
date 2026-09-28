@@ -5,13 +5,14 @@ import { DiscoverPage } from './features/discover/DiscoverPage';
 import { CreateTripPage } from './features/trip-detail/CreateTripPage';
 import { TripDetailPage } from './features/trip-detail/TripDetailPage';
 import { JoinTripPage } from './features/trip-detail/JoinTripPage';
+import { MyTripsPage } from './features/my-trips/MyTripsPage';
 import { useRoute, installLinkInterceptor } from './shared/router';
 
-// Placeholder top-level nav items other than Discover — those tabs stay
-// non-functional until a second real screen exists for each (Epic 2+).
+// Buddies/Write-ups stay non-functional placeholders until a real screen
+// exists for each (Epic 2+/3+). Discover and My Trips are both real now.
 const NAV_ITEMS = [
   { label: 'Discover', href: '/' },
-  { label: 'My Trips', href: '#my-trips' },
+  { label: 'My Trips', href: '/my-trips' },
   { label: 'Buddies', href: '#buddies' },
   { label: 'Write-ups', href: '#write-ups' },
 ];
@@ -23,6 +24,7 @@ function CurrentPage({ pathname, search }: { pathname: string; search: string })
   // leave `destinationId` state stale relative to the URL.
   if (pathname === '/trips/new') return <CreateTripPage key={search} />;
   if (pathname === '/join') return <JoinTripPage />;
+  if (pathname === '/my-trips') return <MyTripsPage />;
 
   const tripMatch = pathname.match(/^\/trip\/([^/]+)$/);
   if (tripMatch) {
@@ -52,7 +54,7 @@ export default function App() {
 
   return (
     <LiveRegionProvider>
-      <Navigation items={NAV_ITEMS} activeHref={pathname === '/' ? '/' : undefined} />
+      <Navigation items={NAV_ITEMS} activeHref={NAV_ITEMS.some((item) => item.href === pathname) ? pathname : undefined} />
       <CurrentPage pathname={pathname} search={search} />
     </LiveRegionProvider>
   );

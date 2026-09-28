@@ -1,0 +1,35 @@
+.my-trips-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-margin-mobile);
+}
+
+@media (min-width: 768px) {
+  .my-trips-page {
+    padding: var(--space-margin-desktop);
+  }
+}
+
+.my-trips-page h1 {
+  margin: 0 0 8px;
+  font-size: var(--font-display-size);
+  font-weight: var(--font-display-weight);
+  line-height: var(--font-display-line-height);
+  letter-spacing: var(--font-display-letter-spacing);
+}
+
+.my-trips-page__intro {
+  margin: 0 0 var(--space-section-gap-mobile);
+  color: var(--color-ink-soft);
+}
+
+@media (min-width: 768px) {
+  .my-trips-page__intro {
+    margin-bottom: var(--space-section-gap);
+  }
+}
+
+.my-trips-page__list {
+  display: flex;
+  flex-direction: column;
+}
