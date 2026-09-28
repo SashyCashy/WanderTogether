@@ -1,0 +1,62 @@
+/* Mirrors .row-item's layout rhythm (Row.css) so the skeleton resolves
+   into real rows without a layout jump. */
+.row-skeleton-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row-skeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-unit);
+  min-height: var(--touch-target-min);
+  padding: 22px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row-skeleton__thumbnail {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-default);
+  background: var(--color-surface-sunken);
+}
+
+.row-skeleton__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row-skeleton__line {
+  height: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+}
+
+.row-skeleton__line--headline {
+  width: 40%;
+}
+
+.row-skeleton__line--description {
+  width: 70%;
+}
+
+/* Calm, subtle pulse — not a spinner, no motion sickness triggers. */
+@media (prefers-reduced-motion: no-preference) {
+  .row-skeleton__thumbnail,
+  .row-skeleton__line {
+    animation: row-skeleton-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes row-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

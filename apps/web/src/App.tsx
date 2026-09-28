@@ -1,9 +1,11 @@
 import { LiveRegionProvider } from './shared/LiveRegion';
 import { Navigation } from './shared/components/Navigation';
+import { DiscoverPage } from './features/discover/DiscoverPage';
 
-// Placeholder top-level nav items. Real routing/screens land in Story 1.2+
-// (this story only scaffolds the shared layer) — hrefs are wired up once a
-// router/feature slice exists to receive them.
+// Placeholder top-level nav items other than Discover. No client-side
+// router yet (spec-1-2's Boundaries & Constraints) — the other tabs stay
+// non-functional until a second real screen exists (Story 1.3+) and a
+// routing decision is actually needed.
 const NAV_ITEMS = [
   { label: 'Discover', href: '#discover' },
   { label: 'My Trips', href: '#my-trips' },
@@ -15,10 +17,7 @@ export default function App() {
   return (
     <LiveRegionProvider>
       <Navigation items={NAV_ITEMS} activeHref="#discover" />
-      <main>
-        <h1>WanderTogether</h1>
-        <p>Plan a trip together — no account needed, just a link.</p>
-      </main>
+      <DiscoverPage />
     </LiveRegionProvider>
   );
 }
