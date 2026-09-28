@@ -33,3 +33,14 @@ export function recordBuddyRequest(buddyListingId: string, requestId: string): v
     // convenience, not a source of truth the app depends on to function.
   }
 }
+
+/** Lets a declined requester return to the request form — Story 2.3's "Request again" action. */
+export function clearBuddyRequestId(buddyListingId: string): void {
+  try {
+    const index = readIndex();
+    delete index[buddyListingId];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(index));
+  } catch {
+    // Same best-effort reasoning as above.
+  }
+}

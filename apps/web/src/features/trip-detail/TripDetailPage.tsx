@@ -7,6 +7,7 @@ import { ApiError } from './api';
 import { addTripToIndex, hasTripInIndex } from '../../shared/myTripsIndex';
 import { ItinerarySection } from './ItinerarySection';
 import { BuddyToggle } from './BuddyToggle';
+import { PendingBuddyRequests } from './PendingBuddyRequests';
 import { formatDateRange } from '../../shared/formatDateRange';
 import './TripDetailPage.css';
 
@@ -194,6 +195,7 @@ export function TripDetailPage({ code }: { code: string }) {
 
       <ItinerarySection tripCode={trip.id} items={trip.itineraryItems} />
       <BuddyToggle tripCode={trip.id} openToBuddies={trip.openToBuddies} buddyNote={trip.buddyNote} />
+      <PendingBuddyRequests tripCode={trip.id} />
     </main>
   );
 }

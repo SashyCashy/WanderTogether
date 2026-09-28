@@ -110,3 +110,31 @@ export async function updateTripSettings(code: string, patch: TripSettingsPatch)
   if (!response.ok) return throwForResponse(response);
   return response.json() as Promise<TripDetail>;
 }
+
+export interface PendingBuddyRequest {
+  id: string;
+  requesterName: string;
+  message: string | null;
+  createdAt: string;
+}
+
+export async function fetchPendingBuddyRequests(code: string): Promise<PendingBuddyRequest[]> {
+  const response = await fetch(`/api/trips/${encodeURIComponent(code)}/buddy-requests`);
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<PendingBuddyRequest[]>;
+}
+
+export async function acceptBuddyRequest(code: string, requestId: string): Promise<TripMember> {
+  const response = await fetch(`/api/trips/${encodeURIComponent(code)}/buddy-requests/${encodeURIComponent(requestId)}/accept`, {
+    method: 'POST',
+  });
+  if (!response.ok) return throwForResponse(response);
+  return response.json() as Promise<TripMember>;
+}
+
+export async function declineBuddyRequest(code: string, requestId: string): Promise<void> {
+  const response = await fetch(`/api/trips/${encodeURIComponent(code)}/buddy-requests/${encodeURIComponent(requestId)}/decline`, {
+    method: 'POST',
+  });
+  if (!response.ok) return throwForResponse(response);
+}

@@ -2,6 +2,11 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { createTrip, getTripByCode, addMember, updateItinerary, updateTripSettings } from './service.js';
 import { AppError } from '../../shared/error-middleware.js';
+// Imports from buddies/service.js, not trips/service.js — buddies/service.js
+// already imports from trips/service.js for its own reads/writes, so routing
+// this dependency through trips/service.js too would create a cycle between
+// the two modules. Routes-to-service is fine; service-to-service isn't.
+import { listPendingRequestsForTrip, acceptBuddyRequest, declineBuddyRequest } from '../buddies/service.js';
 
 // z.iso.date() (not z.coerce.date()) — the spec's Always constraint requires
 // "ISO date strings"; the generic coercer accepts anything the native Date
@@ -97,6 +102,40 @@ tripsRouter.patch('/:code', async (req, res, next) => {
     const patch = updateTripSettingsSchema.parse(req.body);
     const trip = await updateTripSettings(req.params.code, patch);
     res.json(trip);
+  } catch (error) {
+    next(error);
+  }
+});
+
+tripsRouter.get('/:code/buddy-requests', async (req, res, next) => {
+  try {
+    await getTripByCode(req.params.code);
+    const requests = await listPendingRequestsForTrip(req.params.code);
+    res.json(requests);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// No `getTripByCode` pre-check here (unlike the GET route above): an
+// unknown/mismatched Trip Code is already indistinguishable, at the HTTP
+// response level, from "this requestId doesn't belong to this Trip" —
+// `acceptBuddyRequest`/`declineBuddyRequest` already 404 for both via
+// their own `tripId !== tripCode` check, so a second query here would
+// only re-derive the same answer.
+tripsRouter.post('/:code/buddy-requests/:requestId/accept', async (req, res, next) => {
+  try {
+    const member = await acceptBuddyRequest(req.params.code, req.params.requestId);
+    res.status(201).json(member);
+  } catch (error) {
+    next(error);
+  }
+});
+
+tripsRouter.post('/:code/buddy-requests/:requestId/decline', async (req, res, next) => {
+  try {
+    await declineBuddyRequest(req.params.code, req.params.requestId);
+    res.status(200).json({ ok: true });
   } catch (error) {
     next(error);
   }

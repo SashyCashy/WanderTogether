@@ -3,18 +3,19 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { EmptyState } from '../../shared/components/EmptyState';
 import { useAnnounce } from '../../shared/LiveRegion';
 import { fetchBuddyListing, fetchBuddyRequestStatus, submitBuddyRequest, ApiError } from './api';
-import { getBuddyRequestId, recordBuddyRequest } from '../../shared/buddyRequestIndex';
+import { getBuddyRequestId, recordBuddyRequest, clearBuddyRequestId } from '../../shared/buddyRequestIndex';
 import { formatDateRange } from '../../shared/formatDateRange';
 import './BuddyRequestPage.css';
 
 /**
  * Status view for a browser that already submitted a request to this
- * listing (AD-14's client-side dedup — the form never reappears).
- * `status` can only ever be `"pending"` through this story's own code
- * paths; `"declined"`/`"accepted"` are built per the AC but unreachable
- * end-to-end until Story 2.3 ships the accept/decline mutation.
+ * listing (AD-14's client-side dedup — the form never reappears while a
+ * request is outstanding or accepted). Once declined, `onRequestAgain`
+ * clears the local dedup entry and returns to the form — the "Request
+ * again" action Story 2.2 explicitly deferred, since `"declined"` could
+ * never actually occur before Story 2.3's decline mutation existed.
  */
-function RequestStatus({ requestId }: { requestId: string }) {
+function RequestStatus({ requestId, onRequestAgain }: { requestId: string; onRequestAgain: () => void }) {
   const { data: status, isLoading } = useQuery({
     queryKey: ['buddy-request-status', requestId],
     queryFn: () => fetchBuddyRequestStatus(requestId),
@@ -25,7 +26,14 @@ function RequestStatus({ requestId }: { requestId: string }) {
   if (!status) return null;
 
   if (status.status === 'declined') {
-    return <EmptyState headline="This request was declined." body="You can browse other open trips from Buddies." primaryAction={{ label: 'Back to Buddies', href: '/buddies' }} />;
+    return (
+      <EmptyState
+        headline="This request was declined."
+        body="You can send another request, or browse other open trips."
+        primaryAction={{ label: 'Request again', onClick: onRequestAgain }}
+        secondaryAction={{ label: 'Back to Buddies', href: '/buddies' }}
+      />
+    );
   }
   if (status.status === 'accepted') {
     // The backend always includes `tripCode` when status is 'accepted' —
@@ -108,7 +116,13 @@ export function BuddyRequestPage({ buddyListingId }: { buddyListingId: string })
       {listing.buddyNote ? <p className="buddy-request-page__note">{listing.buddyNote}</p> : null}
 
       {requestId ? (
-        <RequestStatus requestId={requestId} />
+        <RequestStatus
+          requestId={requestId}
+          onRequestAgain={() => {
+            clearBuddyRequestId(buddyListingId);
+            setRequestId(null);
+          }}
+        />
       ) : (
         <form className="buddy-request-page__form" onSubmit={handleSubmit}>
           <div className="buddy-request-page__field">
