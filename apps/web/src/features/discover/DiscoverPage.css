@@ -20,15 +20,40 @@
   letter-spacing: var(--font-display-letter-spacing);
 }
 
-.discover-page__intro {
-  margin: 0 0 var(--space-section-gap-mobile);
-  color: var(--color-ink-soft);
+.discover-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-unit);
+  margin-bottom: var(--space-section-gap-mobile);
 }
 
 @media (min-width: 768px) {
-  .discover-page__intro {
+  .discover-page__header {
     margin-bottom: var(--space-section-gap);
   }
+}
+
+.discover-page__intro {
+  margin: 0;
+  color: var(--color-ink-soft);
+}
+
+.discover-page__start-trip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target-min);
+  padding: 14px 22px;
+  border: none;
+  border-radius: 0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  letter-spacing: var(--font-label-letter-spacing);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .discover-page__filters {

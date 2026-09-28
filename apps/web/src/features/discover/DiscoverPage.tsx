@@ -64,8 +64,15 @@ export function DiscoverPage() {
 
   return (
     <main className="discover-page">
-      <h1>Discover</h1>
-      <p className="discover-page__intro">Browse destinations and start planning — no account needed.</p>
+      <div className="discover-page__header">
+        <div>
+          <h1>Discover</h1>
+          <p className="discover-page__intro">Browse destinations and start planning — no account needed.</p>
+        </div>
+        <a className="discover-page__start-trip" href="/trips/new">
+          Start a Trip
+        </a>
+      </div>
 
       <div className="discover-page__filters">
         <div className="discover-page__filter-field">
@@ -137,6 +144,7 @@ export function DiscoverPage() {
               eyebrow={destination.region}
               thumbnail={{ src: destination.photoUrl, alt: destination.name }}
               metadata={destination.country}
+              href={`/trips/new?destinationId=${destination.id}`}
             />
           ))}
         </div>

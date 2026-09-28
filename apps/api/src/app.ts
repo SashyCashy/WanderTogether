@@ -2,6 +2,7 @@ import express from 'express';
 import { requestLogger } from './shared/logger.js';
 import { errorMiddleware, notFoundMiddleware } from './shared/error-middleware.js';
 import { discoveryRouter } from './features/discovery/routes.js';
+import { tripsRouter } from './features/trips/routes.js';
 
 /**
  * Builds the Express app without binding a port, so tests (routes.test.ts)
@@ -24,6 +25,7 @@ export function createApp() {
   // Feature-slice routers mount under /api/* (Story 1.2 establishes this
   // convention — see vite.config.ts's dev proxy target).
   app.use('/api/destinations', discoveryRouter);
+  app.use('/api/trips', tripsRouter);
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);

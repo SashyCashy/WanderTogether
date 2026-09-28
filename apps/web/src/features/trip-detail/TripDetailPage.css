@@ -1,0 +1,66 @@
+.trip-detail-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-margin-mobile);
+}
+
+@media (min-width: 768px) {
+  .trip-detail-page {
+    padding: var(--space-margin-desktop);
+  }
+}
+
+.trip-detail-page__loading {
+  color: var(--color-ink-soft);
+}
+
+.trip-detail-page__eyebrow {
+  margin: 0 0 10px;
+  color: var(--color-accent-text);
+  font-size: var(--font-eyebrow-size);
+  font-weight: var(--font-eyebrow-weight);
+  line-height: var(--font-eyebrow-line-height);
+  letter-spacing: var(--font-eyebrow-letter-spacing);
+  text-transform: uppercase;
+}
+
+.trip-detail-page__name {
+  margin: 0 0 8px;
+  font-size: var(--font-display-size);
+  font-weight: var(--font-display-weight);
+  line-height: var(--font-display-line-height);
+  letter-spacing: var(--font-display-letter-spacing);
+}
+
+.trip-detail-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-gutter);
+  color: var(--color-ink-soft);
+  font-size: var(--font-label-size);
+}
+
+.trip-detail-page__code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+}
+
+.trip-detail-page__code-chip b {
+  color: var(--color-ink);
+  letter-spacing: 0.05em;
+}
+
+.trip-detail-page__copy {
+  min-height: var(--touch-target-min);
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--font-label-size);
+  cursor: pointer;
+}
